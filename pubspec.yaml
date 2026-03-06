@@ -1,0 +1,90 @@
+name: verveforge
+description: "VerveForge — 运动社交 App：记录训练·发现伙伴·挑战自我"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.2
+  flutter: '>=3.24.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Supabase 全家桶（Auth + Database + Realtime + Storage）
+  supabase_flutter: any
+
+  # 状态管理
+  flutter_riverpod: any
+  riverpod_annotation: any
+
+  # 路由
+  go_router: any
+
+  # UI 组件
+  flutter_svg: any
+  cached_network_image: any
+  shimmer: any
+  table_calendar: any
+  fl_chart: any
+  flutter_staggered_grid_view: any
+
+  # 地图（高德）
+  # amap_flutter_map: ^3.0.0         # W4 启用
+  # amap_flutter_location: ^3.0.0    # W4 启用
+
+  # 健康数据
+  health: ^11.0.0                    # W3 启用
+
+  # Apple 登录
+  # sign_in_with_apple: ^6.1.0       # W2 启用
+
+  # 图片处理
+  image_picker: any
+  # image_cropper: ^8.0.0            # W2 启用
+
+  # 推送通知（W6 启用）
+  # firebase_core: ^3.6.0
+  # firebase_messaging: ^15.1.0
+  # flutter_local_notifications: ^18.0.0
+
+  # 数据模型
+  freezed_annotation: any
+  json_annotation: any
+
+  # 工具库
+  uuid: any
+  intl: any
+  timeago: any
+  url_launcher: any
+  share_plus: any
+  permission_handler: any
+  connectivity_plus: any
+  flutter_secure_storage: any
+  path_provider: any
+  logger: any
+  flutter_dotenv: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: any
+  build_runner: any
+  freezed: any
+  json_serializable: any
+  riverpod_generator: any
+  mockito: any
+  mocktail: any
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - .env

@@ -1,0 +1,33 @@
+name: CD - iOS TestFlight
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.4'
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS
+        run: flutter build ipa --release
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+      # TODO: 配置 Fastlane 自动上传 TestFlight
+      # - name: Upload to TestFlight
+      #   uses: maierj/fastlane-action@v3
+      #   with:
+      #     lane: 'beta'
