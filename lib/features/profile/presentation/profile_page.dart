@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/extensions/context_extensions.dart';
@@ -222,6 +224,12 @@ class ProfilePage extends ConsumerWidget {
                                 builder: (_) => const WorkoutListPage()),
                           );
                         },
+                      ),
+                      const Divider(height: 1, indent: 56),
+                      _buildMenuItem(
+                        icon: Icons.fitness_center_outlined,
+                        title: context.l10n.gymNearby,
+                        onTap: () => context.push(AppRoutes.gymMap),
                       ),
                       const Divider(height: 1, indent: 56),
                       _buildMenuItem(

@@ -45,6 +45,8 @@
 	<string>VerveForge needs to read your health data to sync workout records</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>VerveForge needs to write health data to save your workout records</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>VerveForge needs your location to find nearby gyms</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

@@ -8,6 +8,8 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
 import '../../../core/utils/validators.dart';
+import '../../gym/domain/gym_model.dart';
+import '../../gym/providers/gym_provider.dart';
 import '../data/workout_repository.dart';
 import '../providers/workout_provider.dart';
 import 'widgets/sport_type_selector.dart';
@@ -34,6 +36,7 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
   bool _isPublic = false;
   final List<File> _pendingPhotos = [];
   bool _isSaving = false;
+  GymModel? _selectedGym;
 
   @override
   void dispose() {
@@ -162,6 +165,13 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
             ),
             const SizedBox(height: 24),
 
+            // 训练馆选择（可选）
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildGymSelector(context),
+            ),
+            const SizedBox(height: 24),
+
             // 发布开关
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -197,6 +207,63 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
             ),
             const SizedBox(height: 32),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGymSelector(BuildContext context) {
+    final gymsAsync = ref.watch(nearbyGymsProvider);
+
+    return InkWell(
+      onTap: () {
+        final gyms = gymsAsync.valueOrNull ?? [];
+        if (gyms.isEmpty) return;
+
+        showModalBottomSheet(
+          context: context,
+          builder: (ctx) => ListView(
+            shrinkWrap: true,
+            children: [
+              ListTile(
+                title: const Text('不选择训练馆'),
+                onTap: () {
+                  setState(() => _selectedGym = null);
+                  Navigator.pop(ctx);
+                },
+              ),
+              ...gyms.map((gym) => ListTile(
+                    leading: const Icon(Icons.fitness_center),
+                    title: Text(gym.name),
+                    subtitle: Text(gym.address),
+                    trailing: gym.distanceKm != null
+                        ? Text(gym.distanceDisplay)
+                        : null,
+                    onTap: () {
+                      setState(() => _selectedGym = gym);
+                      Navigator.pop(ctx);
+                    },
+                  )),
+            ],
+          ),
+        );
+      },
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: context.l10n.gymTitle,
+          border: const OutlineInputBorder(),
+          suffixIcon: const Icon(Icons.fitness_center, size: 18),
+        ),
+        child: Text(
+          _selectedGym?.name ?? '选择训练馆（可选）',
+          style: TextStyle(
+            color: _selectedGym != null
+                ? null
+                : Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.5),
+          ),
         ),
       ),
     );

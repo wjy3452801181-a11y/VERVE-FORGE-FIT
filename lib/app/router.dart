@@ -15,6 +15,11 @@ import '../features/workout/presentation/workout_list_page.dart';
 import '../features/workout/presentation/workout_calendar_page.dart';
 import '../features/challenge/presentation/challenges_page.dart';
 import '../features/profile/presentation/profile_page.dart';
+import '../features/gym/presentation/gym_map_page.dart';
+import '../features/gym/presentation/gym_list_page.dart';
+import '../features/gym/presentation/gym_detail_page.dart';
+import '../features/gym/presentation/gym_submit_page.dart';
+import '../features/gym/presentation/gym_review_page.dart';
 
 /// 路由路径常量
 class AppRoutes {
@@ -34,6 +39,10 @@ class AppRoutes {
   static const String workoutHistory = '/workout-history';
   static const String workoutCalendar = '/workout-calendar';
   static const String gymMap = '/gym-map';
+  static const String gymList = '/gym-list';
+  static const String gymDetail = '/gym-detail';
+  static const String gymSubmit = '/gym-submit';
+  static const String gymReview = '/gym-review';
   static const String notifications = '/notifications';
 }
 
@@ -110,6 +119,40 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.workoutCalendar,
         builder: (context, state) => const WorkoutCalendarPage(),
+      ),
+
+      // 训练馆地图页
+      GoRoute(
+        path: AppRoutes.gymMap,
+        builder: (context, state) => const GymMapPage(),
+      ),
+
+      // 训练馆列表页
+      GoRoute(
+        path: AppRoutes.gymList,
+        builder: (context, state) => const GymListPage(),
+      ),
+
+      // 训练馆详情页
+      GoRoute(
+        path: '${AppRoutes.gymDetail}/:id',
+        builder: (context, state) => GymDetailPage(
+          gymId: state.pathParameters['id']!,
+        ),
+      ),
+
+      // 提交训练馆页
+      GoRoute(
+        path: AppRoutes.gymSubmit,
+        builder: (context, state) => const GymSubmitPage(),
+      ),
+
+      // 写评价页
+      GoRoute(
+        path: '${AppRoutes.gymReview}/:gymId',
+        builder: (context, state) => GymReviewPage(
+          gymId: state.pathParameters['gymId']!,
+        ),
       ),
 
       // 主框架 — 底部导航栏 Shell

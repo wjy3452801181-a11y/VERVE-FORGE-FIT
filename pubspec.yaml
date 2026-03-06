@@ -32,8 +32,9 @@ dependencies:
   flutter_staggered_grid_view: any
 
   # 地图（高德）
-  # amap_flutter_map: ^3.0.0         # W4 启用
-  # amap_flutter_location: ^3.0.0    # W4 启用
+  amap_flutter_map: ^3.0.0
+  amap_flutter_location: ^3.0.0
+  amap_flutter_base: ^3.0.0
 
   # 健康数据
   health: ^11.0.0                    # W3 启用

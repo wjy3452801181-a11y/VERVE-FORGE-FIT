@@ -151,5 +151,23 @@
   "commonEmpty": "暫無資料",
   "commonError": "出錯了，請重試",
   "commonSuccess": "操作成功",
-  "commonNoNetwork": "網絡連線失敗，請檢查網絡"
+  "commonNoNetwork": "網絡連線失敗，請檢查網絡",
+
+  "gymTitle": "訓練館",
+  "gymNearby": "附近訓練館",
+  "gymSearch": "搜尋訓練館...",
+  "gymDetail": "訓練館詳情",
+  "gymSubmit": "提交訓練館",
+  "gymAddress": "地址",
+  "gymPhone": "電話",
+  "gymWebsite": "網站",
+  "gymOpeningHours": "營業時間",
+  "gymSportTypes": "運動類型",
+  "gymReviews": "評價",
+  "gymWriteReview": "寫評價",
+  "gymRating": "評分",
+  "gymNoReviews": "暫無評價",
+  "gymSubmitSuccess": "訓練館已提交，等待審核",
+  "gymPending": "待審核",
+  "gymVerified": "已認證"
 }

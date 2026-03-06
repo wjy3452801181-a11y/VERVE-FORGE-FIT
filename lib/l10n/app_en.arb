@@ -151,5 +151,23 @@
   "commonEmpty": "No data",
   "commonError": "Something went wrong, please retry",
   "commonSuccess": "Success",
-  "commonNoNetwork": "No network connection"
+  "commonNoNetwork": "No network connection",
+
+  "gymTitle": "Gyms",
+  "gymNearby": "Nearby Gyms",
+  "gymSearch": "Search gyms...",
+  "gymDetail": "Gym Detail",
+  "gymSubmit": "Submit Gym",
+  "gymAddress": "Address",
+  "gymPhone": "Phone",
+  "gymWebsite": "Website",
+  "gymOpeningHours": "Opening Hours",
+  "gymSportTypes": "Sport Types",
+  "gymReviews": "Reviews",
+  "gymWriteReview": "Write Review",
+  "gymRating": "Rating",
+  "gymNoReviews": "No reviews yet",
+  "gymSubmitSuccess": "Gym submitted, pending review",
+  "gymPending": "Pending",
+  "gymVerified": "Verified"
 }
