@@ -5,10 +5,10 @@
   "appName": "VerveForge",
 
   "tabFeed": "动态",
-  "tabDiscover": "发现",
-  "tabRecord": "记录",
+  "tabGyms": "训练馆",
   "tabChallenge": "挑战",
   "tabProfile": "我的",
+  "tabNearby": "附近",
 
   "loginTitle": "登录 VerveForge",
   "loginSubtitle": "记录训练·发现伙伴·挑战自我",
@@ -65,6 +65,14 @@
   "discoverNearbyGyms": "附近训练馆",
   "sendBuddyRequest": "约练",
 
+  "nearbyTitle": "附近",
+  "nearbyBuddies": "附近伙伴",
+  "nearbyGymsRecommend": "推荐训练馆",
+  "nearbyNoBuddies": "附近暂无伙伴",
+  "nearbyNoBuddiesTip": "试试扩大搜索范围",
+  "nearbyNoGyms": "附近暂无训练馆",
+  "nearbyNoGymsTip": "可以提交一个你常去的训练馆",
+
   "workoutCreate": "记录训练",
   "workoutType": "运动类型",
   "workoutDuration": "训练时长（分钟）",
@@ -108,12 +116,69 @@
   "healthSyncError": "同步失败",
   "healthPermissionDenied": "请在设置中允许 VerveForge 访问健康数据",
 
+  "metricsTitle": "运动专项成绩（可选）",
+  "metricsStation": "分站",
+  "metricsTime": "用时",
+  "metricsTotalTime": "总成绩",
+  "metricsWod": "WOD 名称",
+  "metricsScore": "成绩",
+  "metricsWodType": "WOD 类型",
+  "metricsMovement": "动作列表",
+  "metricsDistance": "距离（公里）",
+  "metricsPace": "配速（分钟/公里）",
+  "metricsElevation": "爬升（米）",
+  "metricsFocusArea": "专注区域",
+  "metricsDifficulty": "难度",
+  "metricsClassName": "课程名称",
+  "dataCollectionConsent": "训练数据采集授权",
+  "dataCollectionDesc": "为了提供训练数据分析服务，VerveForge 需要采集以下信息：\n\n• 运动成绩数据（用时、得分、配速等）\n• Apple Health 健康数据（心率、卡路里、步数）\n• 训练照片和视频\n\n您的数据将加密存储，可随时在设置中导出或删除。",
+
   "challengeTitle": "挑战",
   "challengeCreate": "创建挑战",
   "challengeJoin": "参加",
+  "challengeLeave": "退出",
   "challengeLeaderboard": "排行榜",
   "challengeCheckIn": "打卡",
   "challengeProgress": "进度",
+  "challengeDetail": "挑战详情",
+  "challengeStartDate": "开始日期",
+  "challengeEndDate": "结束日期",
+  "challengeGoalType": "目标类型",
+  "challengeGoalValue": "目标值",
+  "challengeGoalSessions": "总次数",
+  "challengeGoalMinutes": "总时长(分钟)",
+  "challengeGoalDays": "总天数",
+  "challengeCity": "城市",
+  "challengeCityAll": "全部城市",
+  "challengeSportType": "运动类型",
+  "challengeMaxParticipants": "最大参与人数",
+  "challengeDescription": "描述",
+  "challengeParticipants": "{count} 人参加",
+  "@challengeParticipants": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "challengeRemainingDays": "还剩 {days} 天",
+  "@challengeRemainingDays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "challengeStatusActive": "进行中",
+  "challengeStatusCompleted": "已结束",
+  "challengeStatusCancelled": "已取消",
+  "challengeFull": "已满员",
+  "challengeNoRecords": "暂无挑战",
+  "challengeStartFirst": "创建或参加运动挑战，与伙伴一起进步",
+  "challengeCreateSuccess": "挑战创建成功",
+  "challengeJoinSuccess": "已加入挑战",
+  "challengeLeaveSuccess": "已退出挑战",
+  "challengeLeaveConfirm": "确定退出这个挑战吗？",
+  "challengeRank": "排名",
+  "challengeCheckInCount": "打卡次数",
+  "challengeRealtime": "实时",
+  "challengeNewAvailable": "挑战赛有更新，点击刷新",
 
   "profileTitle": "我的",
   "profileEdit": "编辑资料",
@@ -170,5 +235,67 @@
   "gymNoReviews": "暂无评价",
   "gymSubmitSuccess": "训练馆已提交，等待审核",
   "gymPending": "待审核",
-  "gymVerified": "已认证"
+  "gymVerified": "已认证",
+
+  "gymFavorite": "收藏",
+  "gymFavorited": "已收藏",
+  "gymFavoriteAdded": "已添加收藏",
+  "gymFavoriteRemoved": "已取消收藏",
+  "gymMyFavorites": "我的收藏训练馆",
+  "gymNoFavorites": "暂无收藏",
+  "gymClaimThis": "认领此场馆",
+  "gymClaimConfirm": "认领场馆",
+  "gymClaimConfirmDesc": "您是此训练馆的馆主或管理员吗？提交认领后将进入审核流程。",
+  "gymClaimSubmit": "提交认领",
+  "gymClaimSuccess": "认领申请已提交，等待审核",
+  "gymClaimStatus": "认领状态",
+  "gymClaimPending": "审核中",
+  "gymClaimApproved": "已通过",
+  "gymClaimRejected": "已拒绝",
+
+  "postCreate": "发布动态",
+  "postPublish": "发布",
+  "postPublishSuccess": "动态发布成功",
+  "postContentHint": "分享你的训练或想法...",
+  "postCity": "城市",
+  "postCreateSubtitle": "分享你的训练瞬间",
+  "postEmpty": "暂无动态",
+  "postEmptyTip": "成为第一个分享动态的人",
+  "postNewAvailable": "有新动态，点击刷新",
+  "postNoFollowing": "暂无关注动态",
+  "postFollowTip": "关注运动伙伴，查看他们的训练动态",
+  "postLikes": "{count} 个赞",
+  "@postLikes": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postComments": "{count} 条评论",
+  "@postComments": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postDeleteConfirm": "确定删除这条动态吗？",
+  "postDeleted": "动态已删除",
+
+  "appLaunchConsentTitle": "欢迎使用 VerveForge",
+  "appLaunchConsentDesc": "在使用我们的服务前，请了解我们如何处理您的数据：",
+  "appLaunchConsentItem1": "账号信息：手机号、Apple ID、昵称、头像",
+  "appLaunchConsentItem2": "训练数据：训练日志、Apple Health 同步、照片",
+  "appLaunchConsentItem3": "位置信息：用于发现附近训练馆和训练伙伴",
+  "appLaunchConsentItem4": "您的数据加密存储，可随时导出或删除",
+  "appLaunchConsentReadFull": "查看完整隐私政策",
+
+  "profileNoBio": "还没有设置简介",
+  "profileRegisterFirst": "请先完成注册",
+  "profileGoRegister": "去注册",
+  "profileMyChallenges": "我的挑战",
+  "profileMyBuddies": "我的伙伴",
+  "profileMyDrafts": "训练草稿",
+  "profilePrivacy": "隐私设置",
+  "settingsFollowSystem": "跟随系统",
+  "settingsOpenSource": "开源协议",
+  "settingsLogoutConfirm": "确认退出登录？",
+  "settingsLogoutDesc": "退出后需要重新登录"
 }

@@ -4,10 +4,10 @@
   "appName": "VerveForge",
 
   "tabFeed": "Feed",
-  "tabDiscover": "Discover",
-  "tabRecord": "Record",
+  "tabGyms": "Gyms",
   "tabChallenge": "Challenge",
   "tabProfile": "Profile",
+  "tabNearby": "Nearby",
 
   "loginTitle": "Login to VerveForge",
   "loginSubtitle": "Record · Discover · Challenge",
@@ -64,6 +64,14 @@
   "discoverNearbyGyms": "Nearby Gyms",
   "sendBuddyRequest": "Buddy Up",
 
+  "nearbyTitle": "Nearby",
+  "nearbyBuddies": "Nearby Buddies",
+  "nearbyGymsRecommend": "Recommended Gyms",
+  "nearbyNoBuddies": "No buddies nearby",
+  "nearbyNoBuddiesTip": "Try expanding your search range",
+  "nearbyNoGyms": "No gyms nearby",
+  "nearbyNoGymsTip": "Submit a gym you frequent",
+
   "workoutCreate": "Log Workout",
   "workoutType": "Sport Type",
   "workoutDuration": "Duration (min)",
@@ -107,12 +115,69 @@
   "healthSyncError": "Sync failed",
   "healthPermissionDenied": "Please allow VerveForge to access health data in Settings",
 
+  "metricsTitle": "Sport-Specific Metrics (Optional)",
+  "metricsStation": "Station",
+  "metricsTime": "Time",
+  "metricsTotalTime": "Total Time",
+  "metricsWod": "WOD Name",
+  "metricsScore": "Score",
+  "metricsWodType": "WOD Type",
+  "metricsMovement": "Movements",
+  "metricsDistance": "Distance (km)",
+  "metricsPace": "Pace (min/km)",
+  "metricsElevation": "Elevation (m)",
+  "metricsFocusArea": "Focus Areas",
+  "metricsDifficulty": "Difficulty",
+  "metricsClassName": "Class Name",
+  "dataCollectionConsent": "Training Data Collection Authorization",
+  "dataCollectionDesc": "To provide workout analytics, VerveForge needs to collect:\n\n• Sport performance data (times, scores, metrics)\n• Apple Health data (heart rate, calories, steps)\n• Training photos and videos\n\nYour data is encrypted and stored securely. You can export or delete it anytime in Settings.",
+
   "challengeTitle": "Challenges",
   "challengeCreate": "Create Challenge",
   "challengeJoin": "Join",
+  "challengeLeave": "Leave",
   "challengeLeaderboard": "Leaderboard",
   "challengeCheckIn": "Check In",
   "challengeProgress": "Progress",
+  "challengeDetail": "Challenge Detail",
+  "challengeStartDate": "Start Date",
+  "challengeEndDate": "End Date",
+  "challengeGoalType": "Goal Type",
+  "challengeGoalValue": "Goal Value",
+  "challengeGoalSessions": "Total Sessions",
+  "challengeGoalMinutes": "Total Minutes",
+  "challengeGoalDays": "Total Days",
+  "challengeCity": "City",
+  "challengeCityAll": "All Cities",
+  "challengeSportType": "Sport Type",
+  "challengeMaxParticipants": "Max Participants",
+  "challengeDescription": "Description",
+  "challengeParticipants": "{count} participants",
+  "@challengeParticipants": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "challengeRemainingDays": "{days} days left",
+  "@challengeRemainingDays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "challengeStatusActive": "In Progress",
+  "challengeStatusCompleted": "Completed",
+  "challengeStatusCancelled": "Cancelled",
+  "challengeFull": "Full",
+  "challengeNoRecords": "No challenges yet",
+  "challengeStartFirst": "Create or join a challenge to compete with others",
+  "challengeCreateSuccess": "Challenge created",
+  "challengeJoinSuccess": "Joined challenge",
+  "challengeLeaveSuccess": "Left challenge",
+  "challengeLeaveConfirm": "Are you sure you want to leave this challenge?",
+  "challengeRank": "Rank",
+  "challengeCheckInCount": "Check-ins",
+  "challengeRealtime": "Live",
+  "challengeNewAvailable": "Challenges updated, tap to refresh",
 
   "profileTitle": "Profile",
   "profileEdit": "Edit Profile",
@@ -169,5 +234,67 @@
   "gymNoReviews": "No reviews yet",
   "gymSubmitSuccess": "Gym submitted, pending review",
   "gymPending": "Pending",
-  "gymVerified": "Verified"
+  "gymVerified": "Verified",
+
+  "gymFavorite": "Favorite",
+  "gymFavorited": "Favorited",
+  "gymFavoriteAdded": "Added to favorites",
+  "gymFavoriteRemoved": "Removed from favorites",
+  "gymMyFavorites": "My Favorite Gyms",
+  "gymNoFavorites": "No favorites yet",
+  "gymClaimThis": "Claim This Gym",
+  "gymClaimConfirm": "Claim Gym",
+  "gymClaimConfirmDesc": "Are you the owner or manager of this gym? Submitting a claim will require review.",
+  "gymClaimSubmit": "Submit Claim",
+  "gymClaimSuccess": "Claim submitted, pending review",
+  "gymClaimStatus": "Claim status",
+  "gymClaimPending": "Under Review",
+  "gymClaimApproved": "Approved",
+  "gymClaimRejected": "Rejected",
+
+  "postCreate": "New Post",
+  "postPublish": "Publish",
+  "postPublishSuccess": "Post published",
+  "postContentHint": "Share your workout or thoughts...",
+  "postCity": "City",
+  "postCreateSubtitle": "Share your workout moments",
+  "postEmpty": "No posts yet",
+  "postEmptyTip": "Be the first to share a post",
+  "postNewAvailable": "New posts available, tap to refresh",
+  "postNoFollowing": "No following posts",
+  "postFollowTip": "Follow athletes to see their updates",
+  "postLikes": "{count} likes",
+  "@postLikes": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postComments": "{count} comments",
+  "@postComments": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "postDeleteConfirm": "Are you sure you want to delete this post?",
+  "postDeleted": "Post deleted",
+
+  "appLaunchConsentTitle": "Welcome to VerveForge",
+  "appLaunchConsentDesc": "Before using our services, please review how we handle your data:",
+  "appLaunchConsentItem1": "Account info: phone number, Apple ID, nickname, avatar",
+  "appLaunchConsentItem2": "Training data: workout logs, Apple Health sync, photos",
+  "appLaunchConsentItem3": "Location: for discovering nearby gyms and workout buddies",
+  "appLaunchConsentItem4": "Your data is encrypted and you can export or delete it anytime",
+  "appLaunchConsentReadFull": "Read full Privacy Policy",
+
+  "profileNoBio": "No bio yet",
+  "profileRegisterFirst": "Please complete registration first",
+  "profileGoRegister": "Register",
+  "profileMyChallenges": "My Challenges",
+  "profileMyBuddies": "My Buddies",
+  "profileMyDrafts": "Workout Drafts",
+  "profilePrivacy": "Privacy",
+  "settingsFollowSystem": "Follow System",
+  "settingsOpenSource": "Open Source",
+  "settingsLogoutConfirm": "Confirm logout?",
+  "settingsLogoutDesc": "You will need to log in again"
 }

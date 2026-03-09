@@ -100,6 +100,22 @@ class WorkoutCard extends StatelessWidget {
                             style: AppTextStyles.caption,
                           ),
                         ],
+                        if (workout.hasMetrics && workout.metricsDisplay.isNotEmpty) ...[
+                          const SizedBox(width: 12),
+                          Icon(Icons.emoji_events_outlined, size: 14,
+                              color: _sportColor(workout.sportType).withValues(alpha: 0.7)),
+                          const SizedBox(width: 2),
+                          Flexible(
+                            child: Text(
+                              workout.metricsDisplay,
+                              style: AppTextStyles.caption.copyWith(
+                                color: _sportColor(workout.sportType),
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 2),
@@ -145,5 +161,19 @@ class WorkoutCard extends StatelessWidget {
       'other': '其他',
     };
     return labels[type] ?? type;
+  }
+
+  Color _sportColor(String type) {
+    const colors = {
+      'hyrox': AppColors.hyrox,
+      'crossfit': AppColors.crossfit,
+      'yoga': AppColors.yoga,
+      'pilates': AppColors.pilates,
+      'running': AppColors.running,
+      'swimming': AppColors.swimming,
+      'strength': AppColors.strength,
+      'other': AppColors.other,
+    };
+    return colors[type] ?? AppColors.primary;
   }
 }

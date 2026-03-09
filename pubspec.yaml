@@ -65,6 +65,7 @@ dependencies:
   connectivity_plus: any
   flutter_secure_storage: any
   path_provider: any
+  shared_preferences: any
   logger: any
   flutter_dotenv: any
 

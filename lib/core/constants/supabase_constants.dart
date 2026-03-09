@@ -7,6 +7,8 @@ class SupabaseConstants {
   static const String workoutLogs = 'workout_logs';
   static const String gyms = 'gyms';
   static const String gymReviews = 'gym_reviews';
+  static const String userGymFavorites = 'user_gym_favorites';
+  static const String gymClaims = 'gym_claims';
   static const String buddyRequests = 'buddy_requests';
   static const String conversations = 'conversations';
   static const String conversationParticipants = 'conversation_participants';
@@ -31,4 +33,5 @@ class SupabaseConstants {
 
   // RPC 函数名
   static const String nearbyGyms = 'nearby_gyms';
+  static const String nearbyBuddies = 'nearby_buddies';
 }

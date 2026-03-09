@@ -10,6 +10,7 @@ import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/sport_type_icon.dart';
 import '../data/workout_repository.dart';
 import '../domain/workout_model.dart';
+import '../domain/workout_metrics.dart';
 import '../providers/workout_provider.dart';
 import 'widgets/photo_grid.dart';
 
@@ -170,6 +171,12 @@ class WorkoutDetailPage extends ConsumerWidget {
           ),
         ],
 
+        // 运动专项成绩
+        if (workout.hasMetrics) ...[
+          const SizedBox(height: 12),
+          _buildMetricsCard(context, workout),
+        ],
+
         // 照片
         if (workout.photoUrls.isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -261,6 +268,161 @@ class WorkoutDetailPage extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) ErrorHandler.showError(context, e);
     }
+  }
+
+  Widget _buildMetricsCard(BuildContext context, WorkoutModel workout) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.emoji_events_outlined,
+                    size: 16, color: AppColors.primary),
+                const SizedBox(width: 6),
+                Text('运动专项成绩',
+                    style:
+                        AppTextStyles.subtitle.copyWith(fontSize: 14)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildMetricsContent(workout),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetricsContent(WorkoutModel workout) {
+    switch (workout.sportType) {
+      case 'hyrox':
+        final m = HyroxMetrics.fromJson(workout.metrics);
+        return Column(
+          children: [
+            ...m.stations.map((s) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(s.name, style: AppTextStyles.caption),
+                      Text(s.timeDisplay,
+                          style: AppTextStyles.number.copyWith(fontSize: 14)),
+                    ],
+                  ),
+                )),
+            const Divider(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('总成绩',
+                    style: AppTextStyles.body
+                        .copyWith(fontWeight: FontWeight.w600)),
+                Text(m.totalTimeDisplay,
+                    style: AppTextStyles.number.copyWith(
+                        fontSize: 18, color: AppColors.hyrox)),
+              ],
+            ),
+          ],
+        );
+      case 'crossfit':
+        final m = CrossFitMetrics.fromJson(workout.metrics);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (m.wodName != null && m.wodName!.isNotEmpty)
+              _buildInfoRow('WOD', m.wodName!),
+            if (m.wodType != null) _buildInfoRow('类型', m.wodTypeDisplay),
+            if (m.score != null && m.score!.isNotEmpty)
+              _buildInfoRow('成绩', m.score!),
+            if (m.movements.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: m.movements
+                    .map((mov) => Chip(
+                          label: Text(mov,
+                              style: const TextStyle(fontSize: 11)),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                          side: BorderSide.none,
+                          backgroundColor:
+                              AppColors.crossfit.withValues(alpha: 0.08),
+                        ))
+                    .toList(),
+              ),
+            ],
+          ],
+        );
+      case 'yoga':
+      case 'pilates':
+        final m = YogaPilatesMetrics.fromJson(workout.metrics);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (m.className != null && m.className!.isNotEmpty)
+              _buildInfoRow('课程', m.className!),
+            if (m.difficulty != null)
+              _buildInfoRow('难度', m.difficultyDisplay),
+            if (m.focusAreas.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: m.focusAreas
+                    .map((area) => Chip(
+                          label: Text(
+                              YogaPilatesMetrics.focusAreaLabels[area] ??
+                                  area,
+                              style: const TextStyle(fontSize: 11)),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                          side: BorderSide.none,
+                          backgroundColor: (workout.sportType == 'pilates'
+                                  ? AppColors.pilates
+                                  : AppColors.yoga)
+                              .withValues(alpha: 0.08),
+                        ))
+                    .toList(),
+              ),
+            ],
+          ],
+        );
+      case 'running':
+        final m = RunningMetrics.fromJson(workout.metrics);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (m.distanceKm != null)
+              _buildInfoRow('距离', '${m.distanceKm} km'),
+            if (m.paceMinPerKm != null)
+              _buildInfoRow('配速', m.paceDisplay),
+            if (m.elevationM != null)
+              _buildInfoRow('爬升', '${m.elevationM} m'),
+          ],
+        );
+      default:
+        return Text(workout.metricsDisplay, style: AppTextStyles.body);
+    }
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: AppTextStyles.caption),
+          Text(value, style: AppTextStyles.body.copyWith(
+            fontWeight: FontWeight.w500,
+          )),
+        ],
+      ),
+    );
   }
 
   String _sportLabel(String type) {

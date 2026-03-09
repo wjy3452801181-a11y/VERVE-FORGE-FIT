@@ -1,0 +1,197 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/errors/error_handler.dart';
+import '../../../core/extensions/context_extensions.dart';
+import '../../workout/presentation/widgets/photo_grid.dart';
+import '../data/post_repository.dart';
+import '../providers/post_provider.dart';
+
+/// 发布动态页
+class PostCreatePage extends ConsumerStatefulWidget {
+  const PostCreatePage({super.key});
+
+  @override
+  ConsumerState<PostCreatePage> createState() => _PostCreatePageState();
+}
+
+class _PostCreatePageState extends ConsumerState<PostCreatePage> {
+  final _contentController = TextEditingController();
+  final List<File> _pendingPhotos = [];
+  String? _selectedCity;
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _contentController.dispose();
+    super.dispose();
+  }
+
+  bool get _canSubmit =>
+      !_isSubmitting &&
+      (_contentController.text.trim().isNotEmpty || _pendingPhotos.isNotEmpty);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(context.l10n.postCreate),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilledButton(
+              onPressed: _canSubmit ? _submit : null,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.3),
+              ),
+              child: _isSubmitting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(context.l10n.postPublish),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 内容输入
+            TextField(
+              controller: _contentController,
+              maxLines: 8,
+              minLines: 4,
+              maxLength: 500,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: context.l10n.postContentHint,
+                hintStyle: AppTextStyles.body.copyWith(
+                  color: context.theme.colorScheme.onSurface
+                      .withValues(alpha: 0.3),
+                ),
+                border: InputBorder.none,
+              ),
+              style: AppTextStyles.body,
+            ),
+
+            const SizedBox(height: 16),
+
+            // 照片网格
+            PhotoGrid(
+              pendingFiles: _pendingPhotos,
+              onAdd: _pickPhotos,
+              onRemoveFile: (index) {
+                setState(() => _pendingPhotos.removeAt(index));
+              },
+            ),
+
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 12),
+
+            // 城市选择
+            _buildCitySelector(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 城市选择
+  Widget _buildCitySelector(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          Icons.location_on_outlined,
+          size: 20,
+          color: context.theme.colorScheme.onSurface.withValues(alpha: 0.5),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          context.l10n.postCity,
+          style: AppTextStyles.body,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Wrap(
+            spacing: 8,
+            children: AppConstants.supportedCities.map((city) {
+              final isSelected = _selectedCity == city;
+              return ChoiceChip(
+                label: Text(city),
+                selected: isSelected,
+                selectedColor: AppColors.primary.withValues(alpha: 0.2),
+                labelStyle: TextStyle(
+                  fontSize: 13,
+                  color: isSelected ? AppColors.primary : null,
+                ),
+                onSelected: (selected) {
+                  setState(() {
+                    _selectedCity = selected ? city : null;
+                  });
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 选择照片
+  Future<void> _pickPhotos() async {
+    final remaining = AppConstants.maxPhotos - _pendingPhotos.length;
+    if (remaining <= 0) return;
+    final files = await pickPhotos(maxCount: remaining);
+    if (files.isNotEmpty) {
+      setState(() => _pendingPhotos.addAll(files));
+    }
+  }
+
+  /// 提交发布
+  Future<void> _submit() async {
+    if (!_canSubmit) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final action = ref.read(postActionProvider);
+      List<String> photoUrls = [];
+
+      // 上传照片
+      if (_pendingPhotos.isNotEmpty) {
+        final repo = ref.read(postRepositoryProvider);
+        photoUrls = await repo.uploadPhotos(_pendingPhotos);
+      }
+
+      // 发布动态
+      await action.publish(
+        content: _contentController.text.trim(),
+        photos: photoUrls,
+        city: _selectedCity,
+      );
+
+      if (mounted) {
+        ErrorHandler.showSuccess(context, context.l10n.postPublishSuccess);
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) ErrorHandler.showError(context, e);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+}

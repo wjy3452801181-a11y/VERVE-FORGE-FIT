@@ -7,6 +7,8 @@ import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/extensions/context_extensions.dart';
+import '../../../core/errors/error_handler.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/sport_type_icon.dart';
 import '../domain/gym_review_model.dart';
@@ -24,10 +26,16 @@ class GymDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final gymAsync = ref.watch(gymDetailProvider(gymId));
     final reviewsAsync = ref.watch(gymReviewsProvider(gymId));
+    final favAsync = ref.watch(gymFavoriteStatusProvider(gymId));
+    final claimAsync = ref.watch(gymClaimStatusProvider(gymId));
 
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.gymDetail),
+        actions: [
+          // 收藏按钮
+          _buildFavoriteAppBarButton(ref, favAsync),
+        ],
       ),
       body: gymAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -177,6 +185,9 @@ class GymDetailPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
 
+                    // 馆主认领区域
+                    _buildClaimSection(context, ref, gym, claimAsync),
+
                     // 评价区标题 + 写评价按钮
                     Row(
                       children: [
@@ -229,6 +240,98 @@ class GymDetailPage extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  /// AppBar 收藏按钮
+  Widget _buildFavoriteAppBarButton(
+    WidgetRef ref,
+    AsyncValue<bool> favAsync,
+  ) {
+    final isFav = favAsync.valueOrNull ?? false;
+    return IconButton(
+      onPressed: () =>
+          ref.read(gymFavoriteActionProvider).toggle(gymId),
+      icon: Icon(
+        isFav ? Icons.favorite : Icons.favorite_border,
+        color: isFav ? Colors.redAccent : null,
+      ),
+    );
+  }
+
+  /// 馆主认领区域
+  Widget _buildClaimSection(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic gym,
+    AsyncValue claimAsync,
+  ) {
+    // 已认证的训练馆不显示认领按钮
+    if (gym.isVerified) return const SizedBox.shrink();
+
+    final claim = claimAsync.valueOrNull;
+
+    // 已提交过认领
+    if (claim != null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: Card(
+          color: AppColors.primary.withValues(alpha: 0.08),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                const Icon(Icons.store_outlined,
+                    size: 20, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${context.l10n.gymClaimStatus}: ${claim.statusDisplay}',
+                    style: AppTextStyles.body,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 未认领 — 显示认领按钮
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: () => _handleClaim(context, ref),
+          icon: const Icon(Icons.store_outlined),
+          label: Text(context.l10n.gymClaimThis),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 处理认领操作
+  Future<void> _handleClaim(BuildContext context, WidgetRef ref) async {
+    final confirmed = await ConfirmDialog.show(
+      context,
+      title: context.l10n.gymClaimConfirm,
+      content: context.l10n.gymClaimConfirmDesc,
+      confirmText: context.l10n.gymClaimSubmit,
+    );
+    if (!confirmed) return;
+
+    try {
+      await ref.read(gymClaimActionProvider).submit(gymId: gymId);
+      if (context.mounted) {
+        ErrorHandler.showSuccess(
+            context, context.l10n.gymClaimSuccess);
+      }
+    } catch (e) {
+      if (context.mounted) ErrorHandler.showError(context, e);
+    }
   }
 
   Widget _buildInfoRow(

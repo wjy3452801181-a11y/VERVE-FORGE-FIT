@@ -113,6 +113,30 @@ class AppTheme {
         ),
       ),
 
+      // TabBar
+      tabBarTheme: const TabBarThemeData(
+        indicatorColor: AppColors.primary,
+        labelColor: AppColors.primary,
+        unselectedLabelColor: AppColors.darkTextSecondary,
+        indicatorSize: TabBarIndicatorSize.label,
+      ),
+
+      // Dialog
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.darkSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+
+      // BottomSheet
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.darkSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+      ),
+
       // Divider
       dividerTheme: DividerThemeData(
         color: Colors.white.withValues(alpha: 0.08),
@@ -182,6 +206,33 @@ class AppTheme {
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+
+      // NavigationBar (Material 3)
+      navigationBarTheme: NavigationBarThemeData(
+        indicatorColor: AppColors.primary.withValues(alpha: 0.15),
+        elevation: 4,
+      ),
+
+      // TabBar
+      tabBarTheme: const TabBarThemeData(
+        indicatorColor: AppColors.primary,
+        labelColor: AppColors.primary,
+        indicatorSize: TabBarIndicatorSize.label,
+      ),
+
+      // Dialog
+      dialogTheme: DialogThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+
+      // BottomSheet
+      bottomSheetTheme: const BottomSheetThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
       ),
     );

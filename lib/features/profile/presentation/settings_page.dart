@@ -64,7 +64,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 const Divider(height: 1, indent: 16),
                 ListTile(
-                  title: const Text('跟随系统'),
+                  title: Text(context.l10n.settingsFollowSystem),
                   trailing: locale == null
                       ? const Icon(Icons.check, color: AppColors.primary)
                       : null,
@@ -204,7 +204,7 @@ class SettingsPage extends ConsumerWidget {
                 const Divider(height: 1, indent: 16),
                 ListTile(
                   leading: const Icon(Icons.code),
-                  title: const Text('开源协议'),
+                  title: Text(context.l10n.settingsOpenSource),
                   subtitle: const Text('MIT License'),
                   onTap: () {
                     // TODO: 显示开源协议
@@ -287,8 +287,8 @@ class SettingsPage extends ConsumerWidget {
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     final confirmed = await ConfirmDialog.show(
       context,
-      title: '确认退出登录？',
-      content: '退出后需要重新登录',
+      title: context.l10n.settingsLogoutConfirm,
+      content: context.l10n.settingsLogoutDesc,
       confirmText: context.l10n.settingsLogout,
       isDestructive: true,
     );
@@ -298,7 +298,7 @@ class SettingsPage extends ConsumerWidget {
     try {
       await ref.read(authRepositoryProvider).signOut();
       if (context.mounted) {
-        context.go(AppRoutes.login);
+        GoRouter.of(context).go(AppRoutes.login);
       }
     } catch (e) {
       if (context.mounted) ErrorHandler.showError(context, e);

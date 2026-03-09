@@ -27,6 +27,8 @@ class WorkoutRepository {
     int? avgHeartRate,
     int? steps,
     String? healthKitId,
+    Map<String, dynamic> metrics = const {},
+    List<String> mediaUrls = const [],
   }) async {
     final userId = SupabaseClientHelper.currentUserId!;
     final id = _uuid.v4();
@@ -47,6 +49,8 @@ class WorkoutRepository {
       'avg_heart_rate': avgHeartRate,
       'steps': steps,
       'health_kit_id': healthKitId,
+      'metrics': metrics,
+      'media_urls': mediaUrls,
     };
 
     await SupabaseClientHelper.from(SupabaseConstants.workoutLogs).insert(data);
@@ -66,6 +70,8 @@ class WorkoutRepository {
       avgHeartRate: avgHeartRate,
       steps: steps,
       healthKitId: healthKitId,
+      metrics: metrics,
+      mediaUrls: mediaUrls,
       createdAt: now,
       updatedAt: now,
     );
@@ -204,6 +210,15 @@ class WorkoutRepository {
 
   /// 上传训练照片
   Future<List<String>> uploadPhotos(List<File> files) async {
+    return ImageUtils.uploadImages(
+      files: files,
+      bucket: SupabaseConstants.workoutPhotosBucket,
+      folder: SupabaseClientHelper.currentUserId,
+    );
+  }
+
+  /// 上传训练媒体（照片+视频统一）
+  Future<List<String>> uploadMedia(List<File> files) async {
     return ImageUtils.uploadImages(
       files: files,
       bucket: SupabaseConstants.workoutPhotosBucket,

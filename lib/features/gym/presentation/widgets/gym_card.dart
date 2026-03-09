@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../shared/widgets/sport_type_icon.dart';
 import '../../domain/gym_model.dart';
+import '../../providers/gym_provider.dart';
 
 /// 训练馆卡片组件
-class GymCard extends StatelessWidget {
+class GymCard extends ConsumerWidget {
   final GymModel gym;
   final VoidCallback? onTap;
 
@@ -17,7 +19,9 @@ class GymCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favAsync = ref.watch(gymFavoriteStatusProvider(gym.id));
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
@@ -130,8 +134,33 @@ class GymCard extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 4),
+              // 收藏按钮
+              _buildFavoriteButton(ref, favAsync),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// 心形收藏按钮
+  Widget _buildFavoriteButton(
+    WidgetRef ref,
+    AsyncValue<bool> favAsync,
+  ) {
+    final isFav = favAsync.valueOrNull ?? false;
+
+    return GestureDetector(
+      onTap: () => ref.read(gymFavoriteActionProvider).toggle(gym.id),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Icon(
+          isFav ? Icons.favorite : Icons.favorite_border,
+          size: 22,
+          color: isFav
+              ? Colors.redAccent
+              : AppColors.primary.withValues(alpha: 0.4),
         ),
       ),
     );

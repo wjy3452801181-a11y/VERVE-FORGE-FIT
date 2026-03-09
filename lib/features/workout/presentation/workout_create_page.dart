@@ -12,6 +12,8 @@ import '../../gym/domain/gym_model.dart';
 import '../../gym/providers/gym_provider.dart';
 import '../data/workout_repository.dart';
 import '../providers/workout_provider.dart';
+import 'widgets/data_collection_consent.dart';
+import 'widgets/metrics_form_switcher.dart';
 import 'widgets/sport_type_selector.dart';
 import 'widgets/intensity_slider.dart';
 import 'widgets/photo_grid.dart';
@@ -37,6 +39,8 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
   final List<File> _pendingPhotos = [];
   bool _isSaving = false;
   GymModel? _selectedGym;
+  Map<String, dynamic> _metrics = {};
+  bool _consentChecked = false;
 
   @override
   void dispose() {
@@ -73,9 +77,25 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
             const SizedBox(height: 8),
             SportTypeSelector(
               selected: _sportType,
-              onSelected: (type) => setState(() => _sportType = type),
+              onSelected: (type) {
+                setState(() {
+                  _sportType = type;
+                  _metrics = {}; // 切换运动类型时重置 metrics
+                });
+              },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // 运动专项成绩（可折叠）
+            if (MetricsFormSwitcher.hasMetricsForm(_sportType))
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: MetricsFormSwitcher(
+                  sportType: _sportType,
+                  onMetricsChanged: (m) => _metrics = m,
+                ),
+              ),
+            const SizedBox(height: 8),
 
             // 训练时长
             Padding(
@@ -327,6 +347,13 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
   Future<void> _save({required bool isDraft}) async {
     if (!isDraft && !_formKey.currentState!.validate()) return;
 
+    // 首次使用时弹出 PIPL 数据采集授权
+    if (!_consentChecked) {
+      final granted = await DataCollectionConsent.ensureConsent(context);
+      if (!granted) return;
+      _consentChecked = true;
+    }
+
     setState(() => _isSaving = true);
 
     try {
@@ -357,6 +384,7 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
         photoUrls: photoUrls,
         isPublic: _isPublic,
         isDraft: isDraft,
+        metrics: _metrics,
       );
 
       // 刷新列表和统计

@@ -12,12 +12,9 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../workout/providers/workout_provider.dart';
 import '../../workout/presentation/widgets/workout_stats_card.dart';
-import '../../workout/presentation/workout_list_page.dart';
-import '../../workout/presentation/workout_calendar_page.dart';
-import 'profile_edit_page.dart';
-import 'settings_page.dart';
 
-/// 个人主页 — Tab 5
+/// 个人主页 — Tab 4
+/// 用户信息卡片、训练统计、功能入口（训练日历/日志/收藏/挑战/伙伴/隐私）
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
@@ -31,12 +28,7 @@ class ProfilePage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsPage()),
-              );
-            },
+            onPressed: () => context.push(AppRoutes.settings),
           ),
         ],
       ),
@@ -52,9 +44,9 @@ class ProfilePage extends ConsumerWidget {
           if (profile == null) {
             return EmptyStateWidget(
               icon: Icons.person_outline,
-              title: '请先完成注册',
-              actionText: '去注册',
-              onAction: () {},
+              title: context.l10n.profileRegisterFirst,
+              actionText: context.l10n.profileGoRegister,
+              onAction: () => context.go(AppRoutes.onboarding),
             );
           }
 
@@ -96,7 +88,7 @@ class ProfilePage extends ConsumerWidget {
                                 )
                               else
                                 Text(
-                                  '还没有设置简介',
+                                  context.l10n.profileNoBio,
                                   style: AppTextStyles.caption.copyWith(
                                     color: context.colorScheme.onSurface
                                         .withValues(alpha: 0.4),
@@ -119,15 +111,10 @@ class ProfilePage extends ConsumerWidget {
                         ),
                         IconButton(
                           icon: const Icon(Icons.edit_outlined, size: 20),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ProfileEditPage(profile: profile),
-                              ),
-                            );
-                          },
+                          onPressed: () => context.push(
+                            AppRoutes.profileEdit,
+                            extra: profile,
+                          ),
                         ),
                       ],
                     ),
@@ -135,7 +122,7 @@ class ProfilePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // 信息行
+                // 信息行：城市 + 等级
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -157,7 +144,7 @@ class ProfilePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // 训练统计卡片（接入真实数据）
+                // 训练统计卡片
                 Consumer(
                   builder: (context, ref, _) {
                     final statsAsync = ref.watch(workoutStatsProvider);
@@ -168,11 +155,14 @@ class ProfilePage extends ConsumerWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _buildStatItem('--', '本周训练'),
+                              _buildStatItem(
+                                  '--', context.l10n.workoutThisWeek),
                               _buildDivider(),
-                              _buildStatItem('--', '本月训练'),
+                              _buildStatItem(
+                                  '--', context.l10n.workoutThisMonth),
                               _buildDivider(),
-                              _buildStatItem('--', '总时长'),
+                              _buildStatItem(
+                                  '--', context.l10n.workoutTotalHours),
                             ],
                           ),
                         ),
@@ -183,11 +173,14 @@ class ProfilePage extends ConsumerWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _buildStatItem('0', '本周训练'),
+                              _buildStatItem(
+                                  '0', context.l10n.workoutThisWeek),
                               _buildDivider(),
-                              _buildStatItem('0', '本月训练'),
+                              _buildStatItem(
+                                  '0', context.l10n.workoutThisMonth),
                               _buildDivider(),
-                              _buildStatItem('0h', '总时长'),
+                              _buildStatItem(
+                                  '0h', context.l10n.workoutTotalHours),
                             ],
                           ),
                         ),
@@ -202,46 +195,59 @@ class ProfilePage extends ConsumerWidget {
                 Card(
                   child: Column(
                     children: [
+                      // 训练日历
                       _buildMenuItem(
                         icon: Icons.calendar_month_outlined,
                         title: context.l10n.workoutCalendar,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const WorkoutCalendarPage()),
-                          );
-                        },
+                        onTap: () => context.push(AppRoutes.workoutCalendar),
                       ),
                       const Divider(height: 1, indent: 56),
+
+                      // 训练日志
                       _buildMenuItem(
                         icon: Icons.list_alt_outlined,
                         title: context.l10n.profileWorkoutLog,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const WorkoutListPage()),
-                          );
-                        },
+                        onTap: () => context.push(AppRoutes.workoutHistory),
                       ),
                       const Divider(height: 1, indent: 56),
+
+                      // 训练馆地图
                       _buildMenuItem(
                         icon: Icons.fitness_center_outlined,
                         title: context.l10n.gymNearby,
                         onTap: () => context.push(AppRoutes.gymMap),
                       ),
                       const Divider(height: 1, indent: 56),
+
+                      // 收藏训练馆
                       _buildMenuItem(
-                        icon: Icons.emoji_events_outlined,
-                        title: '我的挑战',
-                        onTap: () {},
+                        icon: Icons.favorite_outlined,
+                        title: context.l10n.gymMyFavorites,
+                        onTap: () => context.push(AppRoutes.gymFavorites),
                       ),
                       const Divider(height: 1, indent: 56),
+
+                      // 我的挑战 → 跳转挑战 Tab
+                      _buildMenuItem(
+                        icon: Icons.emoji_events_outlined,
+                        title: context.l10n.profileMyChallenges,
+                        onTap: () => context.go(AppRoutes.challenges),
+                      ),
+                      const Divider(height: 1, indent: 56),
+
+                      // 我的伙伴 → 跳转附近 Tab
                       _buildMenuItem(
                         icon: Icons.people_outlined,
-                        title: '我的伙伴',
-                        onTap: () {},
+                        title: context.l10n.profileMyBuddies,
+                        onTap: () => context.go(AppRoutes.nearby),
+                      ),
+                      const Divider(height: 1, indent: 56),
+
+                      // 隐私设置
+                      _buildMenuItem(
+                        icon: Icons.privacy_tip_outlined,
+                        title: context.l10n.profilePrivacy,
+                        onTap: () => context.push(AppRoutes.settings),
                       ),
                     ],
                   ),
@@ -254,6 +260,7 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
+  /// 城市 key → l10n 显示名称
   String _cityName(BuildContext context, String city) {
     final names = {
       'beijing': context.l10n.cityBeijing,

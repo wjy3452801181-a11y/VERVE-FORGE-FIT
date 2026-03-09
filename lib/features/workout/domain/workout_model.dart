@@ -14,6 +14,8 @@ class WorkoutModel {
   final int? avgHeartRate;
   final int? steps;
   final String? healthKitId;
+  final Map<String, dynamic> metrics;
+  final List<String> mediaUrls;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -33,6 +35,8 @@ class WorkoutModel {
     this.avgHeartRate,
     this.steps,
     this.healthKitId,
+    this.metrics = const {},
+    this.mediaUrls = const [],
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -58,6 +62,11 @@ class WorkoutModel {
       avgHeartRate: json['avg_heart_rate'] as int?,
       steps: json['steps'] as int?,
       healthKitId: json['health_kit_id'] as String?,
+      metrics: (json['metrics'] as Map<String, dynamic>?) ?? {},
+      mediaUrls: (json['media_urls'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt: json['deleted_at'] != null
@@ -83,6 +92,8 @@ class WorkoutModel {
       'avg_heart_rate': avgHeartRate,
       'steps': steps,
       'health_kit_id': healthKitId,
+      'metrics': metrics,
+      'media_urls': mediaUrls,
     };
   }
 
@@ -100,6 +111,8 @@ class WorkoutModel {
     int? avgHeartRate,
     int? steps,
     String? healthKitId,
+    Map<String, dynamic>? metrics,
+    List<String>? mediaUrls,
     DateTime? deletedAt,
   }) {
     return WorkoutModel(
@@ -117,10 +130,57 @@ class WorkoutModel {
       avgHeartRate: avgHeartRate ?? this.avgHeartRate,
       steps: steps ?? this.steps,
       healthKitId: healthKitId ?? this.healthKitId,
+      metrics: metrics ?? this.metrics,
+      mediaUrls: mediaUrls ?? this.mediaUrls,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
       deletedAt: deletedAt ?? this.deletedAt,
     );
+  }
+
+  /// 是否有运动专项成绩
+  bool get hasMetrics => metrics.isNotEmpty;
+
+  /// 运动专项成绩摘要显示
+  String get metricsDisplay {
+    if (!hasMetrics) return '';
+    // 延迟导入避免循环依赖，使用内联逻辑
+    switch (sportType) {
+      case 'hyrox':
+        final totalSec = metrics['total_time_sec'] as int?;
+        if (totalSec == null) return '';
+        final h = totalSec ~/ 3600;
+        final m = (totalSec % 3600) ~/ 60;
+        final s = totalSec % 60;
+        if (h > 0) {
+          return '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+        }
+        return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+      case 'crossfit':
+        final parts = <String>[];
+        final wod = metrics['wod_name'] as String?;
+        final score = metrics['score'] as String?;
+        if (wod != null && wod.isNotEmpty) parts.add(wod);
+        if (score != null && score.isNotEmpty) parts.add(score);
+        return parts.join(' ');
+      case 'yoga':
+      case 'pilates':
+        return (metrics['class_name'] as String?) ?? '';
+      case 'running':
+        final parts = <String>[];
+        final dist = metrics['distance_km'];
+        final pace = metrics['pace_min_per_km'];
+        if (dist != null) parts.add('${dist}km');
+        if (pace != null) {
+          final totalSec = ((pace as num).toDouble() * 60).round();
+          final min = totalSec ~/ 60;
+          final sec = totalSec % 60;
+          parts.add("$min'${sec.toString().padLeft(2, '0')}\"");
+        }
+        return parts.join(' ');
+      default:
+        return '';
+    }
   }
 
   /// 时长显示（如 "1h 30min" 或 "45min"）

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/router.dart';
 import '../../core/extensions/context_extensions.dart';
 import '../../app/theme/app_colors.dart';
-import '../../features/workout/presentation/workout_create_page.dart';
 
 /// App 主框架 — 底部导航栏 Shell
-/// 包含 5 个 Tab：动态、发现、记录、挑战、我的
+/// 5 个 Tab：动态 / 训练馆 / 挑战 / 我的 / 附近
 class AppScaffold extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -19,50 +19,50 @@ class AppScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: navigationShell,
+      // 全局浮动按钮 — 快速记录训练 / 发布动态
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showCreateOptions(context),
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) {
-          // Tab 3 (记录) 特殊处理 — 弹出模态而不是切换页面
-          if (index == 2) {
-            _showCreateOptions(context);
-            return;
-          }
           navigationShell.goBranch(
             index,
             initialLocation: index == navigationShell.currentIndex,
           );
         },
         destinations: [
+          // Tab 1: 动态
           NavigationDestination(
             icon: const Icon(Icons.dynamic_feed_outlined),
             selectedIcon: const Icon(Icons.dynamic_feed),
             label: context.l10n.tabFeed,
           ),
+          // Tab 2: 训练馆
           NavigationDestination(
-            icon: const Icon(Icons.explore_outlined),
-            selectedIcon: const Icon(Icons.explore),
-            label: context.l10n.tabDiscover,
+            icon: const Icon(Icons.fitness_center_outlined),
+            selectedIcon: const Icon(Icons.fitness_center),
+            label: context.l10n.tabGyms,
           ),
-          NavigationDestination(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.add, color: Colors.white, size: 24),
-            ),
-            label: context.l10n.tabRecord,
-          ),
+          // Tab 3: 挑战
           NavigationDestination(
             icon: const Icon(Icons.emoji_events_outlined),
             selectedIcon: const Icon(Icons.emoji_events),
             label: context.l10n.tabChallenge,
           ),
+          // Tab 4: 我的
           NavigationDestination(
             icon: const Icon(Icons.person_outlined),
             selectedIcon: const Icon(Icons.person),
             label: context.l10n.tabProfile,
+          ),
+          // Tab 5: 附近
+          NavigationDestination(
+            icon: const Icon(Icons.location_on_outlined),
+            selectedIcon: const Icon(Icons.location_on),
+            label: context.l10n.tabNearby,
           ),
         ],
       ),
@@ -107,10 +107,7 @@ class AppScaffold extends StatelessWidget {
                 title: Text(context.l10n.workoutCreate),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const WorkoutCreatePage()),
-                  );
+                  context.push(AppRoutes.createWorkout);
                 },
               ),
               const SizedBox(height: 8),
@@ -125,10 +122,11 @@ class AppScaffold extends StatelessWidget {
                   ),
                   child: const Icon(Icons.edit_note, color: AppColors.secondary),
                 ),
-                title: const Text('发布动态'),
+                title: Text(context.l10n.postCreate),
+                subtitle: Text(context.l10n.postCreateSubtitle),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: W8 实现 — 导航到动态发布页
+                  context.push(AppRoutes.postCreate);
                 },
               ),
             ],
