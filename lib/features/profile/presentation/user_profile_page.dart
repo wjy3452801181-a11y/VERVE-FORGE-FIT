@@ -29,9 +29,9 @@ class UserProfilePage extends ConsumerWidget {
         ),
         data: (profile) {
           if (profile == null) {
-            return const EmptyStateWidget(
+            return EmptyStateWidget(
               icon: Icons.person_off_outlined,
-              title: '用户不存在',
+              title: context.l10n.profileUserNotFound,
             );
           }
 
@@ -70,10 +70,10 @@ class UserProfilePage extends ConsumerWidget {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildInfoRow(Icons.location_city, '城市',
+                      _buildInfoRow(Icons.location_city, context.l10n.profileCity,
                           profile.city),
                       const Divider(height: 24),
-                      _buildInfoRow(Icons.trending_up, '经验等级',
+                      _buildInfoRow(Icons.trending_up, context.l10n.profileExperienceLevel,
                           profile.experienceLevelDisplay),
                     ],
                   ),
@@ -88,7 +88,7 @@ class UserProfilePage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('运动偏好', style: AppTextStyles.subtitle),
+                      Text(context.l10n.profileSportPreference, style: AppTextStyles.subtitle),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 12,
