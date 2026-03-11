@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'mosaic_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/onboarding_page.dart';
 import '../features/auth/providers/auth_provider.dart';
+import '../features/buddy/presentation/buddy_list_page.dart';
+import '../features/buddy/presentation/buddy_requests_page.dart';
+import '../features/chat/presentation/chat_page.dart';
+import '../features/chat/presentation/conversations_page.dart';
 import '../features/profile/providers/profile_provider.dart';
 import '../shared/widgets/app_scaffold.dart';
 import '../features/post/presentation/feed_page.dart';
@@ -29,6 +34,11 @@ import '../features/gym/presentation/gym_review_page.dart';
 import '../features/gym/presentation/gym_favorites_page.dart';
 import '../features/post/presentation/post_create_page.dart';
 import '../features/profile/presentation/privacy_policy_page.dart';
+import '../features/ai_avatar/presentation/ai_avatar_create_page.dart';
+import '../features/ai_avatar/presentation/ai_avatar_detail_page.dart';
+import '../features/ai_avatar/presentation/ai_avatar_chat_page.dart';
+import '../features/ai_avatar/presentation/ai_avatar_shared_view.dart';
+import '../features/notification/presentation/notifications_page.dart';
 
 /// 路由路径常量
 class AppRoutes {
@@ -64,6 +74,16 @@ class AppRoutes {
   static const String profileEdit = '/profile-edit';
   static const String privacyPolicy = '/privacy-policy';
   static const String notifications = '/notifications';
+  static const String buddyList = '/buddy-list';
+  static const String buddyRequests = '/buddy-requests';
+  static const String conversations = '/conversations';
+  static const String chat = '/chat';
+
+  // AI 分身页面
+  static const String aiAvatar = '/ai-avatar';
+  static const String aiAvatarCreate = '/ai-avatar-create';
+  static const String aiAvatarChat = '/ai-avatar-chat';
+  static const String aiAvatarShared = '/ai-avatar-shared';
 
   // 旧路由兼容（Discover → Gyms）
   static const String discover = '/discover';
@@ -112,135 +132,274 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
 
     routes: [
-      // 登录页
+      // 登录页（不使用马赛克过渡）
       GoRoute(
         path: AppRoutes.login,
         builder: (context, state) => const LoginPage(),
       ),
 
-      // 注册引导页
+      // 注册引导页（不使用马赛克过渡）
       GoRoute(
         path: AppRoutes.onboarding,
         builder: (context, state) => const OnboardingPage(),
       ),
 
       // ==============================
-      // 独立页面（不在 BottomNav 内）
+      // 独立页面（使用马赛克过渡）
       // ==============================
 
-      // 创建训练页（FAB 或模态触发）
+      // 创建训练页
       GoRoute(
         path: AppRoutes.createWorkout,
-        builder: (context, state) => const WorkoutCreatePage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const WorkoutCreatePage(),
+        ),
       ),
 
       // 训练详情页
       GoRoute(
         path: '${AppRoutes.workoutDetail}/:id',
-        builder: (context, state) => WorkoutDetailPage(
-          workoutId: state.pathParameters['id']!,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: WorkoutDetailPage(
+            workoutId: state.pathParameters['id']!,
+          ),
         ),
       ),
 
       // 训练历史列表页
       GoRoute(
         path: AppRoutes.workoutHistory,
-        builder: (context, state) => const WorkoutListPage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const WorkoutListPage(),
+        ),
       ),
 
       // 训练日历页
       GoRoute(
         path: AppRoutes.workoutCalendar,
-        builder: (context, state) => const WorkoutCalendarPage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const WorkoutCalendarPage(),
+        ),
       ),
 
       // 训练馆地图页
       GoRoute(
         path: AppRoutes.gymMap,
-        builder: (context, state) => const GymMapPage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const GymMapPage(),
+        ),
       ),
 
       // 训练馆搜索列表页
       GoRoute(
         path: AppRoutes.gymList,
-        builder: (context, state) => const GymListPage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const GymListPage(),
+        ),
       ),
 
       // 训练馆详情页
       GoRoute(
         path: '${AppRoutes.gymDetail}/:id',
-        builder: (context, state) => GymDetailPage(
-          gymId: state.pathParameters['id']!,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: GymDetailPage(
+            gymId: state.pathParameters['id']!,
+          ),
         ),
       ),
 
       // 提交训练馆页
       GoRoute(
         path: AppRoutes.gymSubmit,
-        builder: (context, state) => const GymSubmitPage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const GymSubmitPage(),
+        ),
       ),
 
       // 写评价页
       GoRoute(
         path: '${AppRoutes.gymReview}/:gymId',
-        builder: (context, state) => GymReviewPage(
-          gymId: state.pathParameters['gymId']!,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: GymReviewPage(
+            gymId: state.pathParameters['gymId']!,
+          ),
         ),
       ),
 
       // 挑战赛详情（排行榜）页
       GoRoute(
         path: '${AppRoutes.challengeDetail}/:id',
-        builder: (context, state) => ChallengeRankPage(
-          challengeId: state.pathParameters['id']!,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: ChallengeRankPage(
+            challengeId: state.pathParameters['id']!,
+          ),
         ),
       ),
 
       // 创建挑战赛页
       GoRoute(
         path: AppRoutes.challengeCreate,
-        builder: (context, state) => const ChallengeCreatePage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const ChallengeCreatePage(),
+        ),
       ),
 
       // 收藏训练馆列表页
       GoRoute(
         path: AppRoutes.gymFavorites,
-        builder: (context, state) => const GymFavoritesPage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const GymFavoritesPage(),
+        ),
+      ),
+
+      // 好友列表页
+      GoRoute(
+        path: AppRoutes.buddyList,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const BuddyListPage(),
+        ),
+      ),
+
+      // 好友请求页
+      GoRoute(
+        path: AppRoutes.buddyRequests,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const BuddyRequestsPage(),
+        ),
+      ),
+
+      // 私信会话列表页
+      GoRoute(
+        path: AppRoutes.conversations,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const ConversationsPage(),
+        ),
+      ),
+
+      // 聊天页
+      GoRoute(
+        path: '${AppRoutes.chat}/:userId',
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: ChatPage(
+            otherUserId: state.pathParameters['userId']!,
+            otherNickname: state.extra as String?,
+          ),
+        ),
       ),
 
       // 发布动态页
       GoRoute(
         path: AppRoutes.postCreate,
-        builder: (context, state) => const PostCreatePage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const PostCreatePage(),
+        ),
       ),
 
       // 隐私政策页
       GoRoute(
         path: AppRoutes.privacyPolicy,
-        builder: (context, state) => const PrivacyPolicyPage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const PrivacyPolicyPage(),
+        ),
       ),
 
       // 设置页
       GoRoute(
         path: AppRoutes.settings,
-        builder: (context, state) => const SettingsPage(),
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const SettingsPage(),
+        ),
+      ),
+
+      // 通知页
+      GoRoute(
+        path: AppRoutes.notifications,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const NotificationsPage(),
+        ),
+      ),
+
+      // AI 分身详情页
+      GoRoute(
+        path: AppRoutes.aiAvatar,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const AiAvatarDetailPage(),
+        ),
+      ),
+
+      // AI 分身创建页
+      GoRoute(
+        path: AppRoutes.aiAvatarCreate,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const AiAvatarCreatePage(),
+        ),
+      ),
+
+      // AI 分身聊天页（支持 avatarId 路径参数）
+      GoRoute(
+        path: '${AppRoutes.aiAvatarChat}/:avatarId',
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const AiAvatarChatPage(),
+        ),
+      ),
+
+      // AI 分身聊天页（无参数兜底，使用当前分身）
+      GoRoute(
+        path: AppRoutes.aiAvatarChat,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: const AiAvatarChatPage(),
+        ),
+      ),
+
+      // AI 分身分享展示页（公开链接）
+      GoRoute(
+        path: '${AppRoutes.aiAvatarShared}/:shareToken',
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: AiAvatarSharedView(
+            shareToken: state.pathParameters['shareToken']!,
+          ),
+        ),
       ),
 
       // 编辑个人资料页（通过 extra 传递 ProfileModel）
       GoRoute(
         path: AppRoutes.profileEdit,
-        builder: (context, state) => ProfileEditPage(
-          profile: state.extra! as ProfileModel,
+        pageBuilder: (context, state) => MosaicPage(
+          key: state.pageKey,
+          child: ProfileEditPage(
+            profile: state.extra! as ProfileModel,
+          ),
         ),
       ),
 
       // ==============================
       // 主框架 — 底部导航栏 Shell（5 个 Tab）
-      // Tab 1: 动态 (Feed)
-      // Tab 2: 训练馆 (Gyms)
-      // Tab 3: 挑战 (Challenges)
-      // Tab 4: 我的 (Profile)
-      // Tab 5: 附近 (Nearby)
+      // Tab 切换不使用马赛克过渡
       // ==============================
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -257,7 +416,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Tab 2: 训练馆（原「发现」→ 改为训练馆列表入口）
+          // Tab 2: 训练馆
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -287,7 +446,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Tab 5: 附近（LBS 伙伴 + 训练馆推荐）
+          // Tab 5: 附近
           StatefulShellBranch(
             routes: [
               GoRoute(

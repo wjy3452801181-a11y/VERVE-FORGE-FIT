@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../app/theme/app_colors.dart';
 
 /// 运动类型图标映射组件
+/// 统一黑色，通过不同 icon 形状区分运动类型
 class SportTypeIcon extends StatelessWidget {
   final String sportType;
   final double size;
@@ -25,7 +26,7 @@ class SportTypeIcon extends StatelessWidget {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: config.color.withValues(alpha: 0.15),
+            color: config.color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(size * 0.25),
           ),
           child: Icon(
@@ -50,9 +51,9 @@ class SportTypeIcon extends StatelessWidget {
     'crossfit': const _SportConfig(Icons.fitness_center, AppColors.crossfit, 'CrossFit'),
     'yoga': const _SportConfig(Icons.self_improvement, AppColors.yoga, '瑜伽'),
     'pilates': const _SportConfig(Icons.accessibility_new, AppColors.pilates, '普拉提'),
-    'running': const _SportConfig(Icons.directions_run, AppColors.running, '跑步'),
+    'running': const _SportConfig(Icons.directions_bike, AppColors.running, '跑步'),
     'swimming': const _SportConfig(Icons.pool, AppColors.swimming, '游泳'),
-    'strength': const _SportConfig(Icons.fitness_center, AppColors.strength, '力量'),
+    'strength': const _SportConfig(Icons.sports_gymnastics, AppColors.strength, '力量'),
     'other': const _SportConfig(Icons.sports, AppColors.other, '其他'),
   };
 }

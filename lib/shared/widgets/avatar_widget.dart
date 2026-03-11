@@ -52,7 +52,7 @@ class AvatarWidget extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      color: AppColors.primary.withValues(alpha: 0.2),
+      color: const Color(0xFFE0E0E0),
       child: Center(
         child: fallbackText != null && fallbackText!.isNotEmpty
             ? Text(
