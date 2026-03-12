@@ -1,152 +1,68 @@
-# VerveForge
+# VerveForge (Private Repository)
 
-**Record · Discover · Challenge**
+VerveForge 是一款专注于运动社交与健康追踪的 iOS 优先移动应用。
 
-A fitness social app for HYROX, CrossFit, Yoga, and Pilates enthusiasts in major cities worldwide.
+## 项目概述
+- 核心功能：训练日志记录、挑战赛 PK、训练馆地图与收藏、AI 虚拟分身社交
+- 技术栈：Flutter 3.x + Supabase (后端) + Riverpod (状态管理) + go_router (路由)
+- 目标平台：iOS（优先） / Android / Web
+- 当前状态：MVP 功能基本完成，AI 分身模块已实现完整闭环
 
-> [中文版 README](README_ZH.md)
+## 启动方式（本地开发）
 
----
+1. 安装依赖
+   ```bash
+   flutter pub get
+   ```
 
-## Features
+2. 配置环境变量
+   ```bash
+   cp .env.production.example .env
+   # 编辑 .env 填入 Supabase URL、Anon Key、高德 Key
+   ```
 
-### Core
-- **Workout Logging** — Record training sessions with photos, Apple Health sync, intensity tracking (1-10 scale)
-- **Gym Directory** — User-contributed gym database with map view (AMap SDK), reviews and favorites
-- **Buddy Discovery** — Find nearby training partners by sport type, city, and experience level
-- **Real-time Chat** — 1-on-1 messaging with buddies, plan workouts together
-- **Challenges** — Create or join fitness challenges, check-in tracking, leaderboards
-- **Social Feed** — Share training updates, like, comment, follow other athletes
+3. 运行应用
+   ```bash
+   # iOS 模拟器
+   flutter run
 
-### AI Avatar
-- **AI Training Partner** — Create a personalized AI avatar that reflects your fitness personality
-- **Auto-Reply** — AI avatar can respond to messages based on your training style and preferences
-- **Profile Sharing** — Share your AI avatar's public profile with a unique link
-- **Smart Content Filter** — Keyword-based filtering for safe AI-generated responses
+   # Web 端
+   flutter run -d chrome
+   ```
 
-### UI System
-- **Cap Card** — Glassmorphism card components (Step Card / Quote Card / Capability Card / Stats Card)
-- **Dark & Light Mode** — True dark mode (#0A0A0A) with adaptive theme switching
-- **Web Preview** — Standalone HTML/CSS preview for the Cap Card design system
+4. 数据库初始化
+   ```
+   在 Supabase SQL Editor 中按顺序执行 supabase/migrations/ 下的 SQL 文件（00001 → 00024）
+   ```
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | Flutter 3.24+ (Material 3, Dark/Light Mode) |
-| Backend | Supabase (Auth + PostgreSQL + Realtime + Storage + Edge Functions) |
-| State Management | Riverpod |
-| Routing | go_router |
-| Maps | AMap Flutter SDK (GCJ-02 coordinate system) |
-| Health Data | Apple HealthKit via `health` plugin |
-| Auth | Apple Sign-In + Supabase Auth |
-| Web | Flutter Web + Custom CSS (Cap Card UI System) |
-| Font | Inter (400/500/600/700/900) |
-
-## Getting Started
-
-### Prerequisites
-
-- Flutter SDK >= 3.24.0
-- Dart SDK >= 3.6.2
-- Xcode 15+ (for iOS)
-- A Supabase project — [supabase.com](https://supabase.com)
-- AMap developer account — [lbs.amap.com](https://lbs.amap.com) (optional, for map features)
-
-### Setup
-
-```bash
-# Clone
-git clone https://github.com/wjy3452801181-a11y/VERVE-FORGE-FIT.git
-cd VERVE-FORGE-FIT
-
-# Environment variables
-cp .env.production.example .env
-# Edit .env with your Supabase URL, Anon Key, and AMap keys
-
-# Install dependencies
-flutter pub get
-
-# Run on iOS simulator
-flutter run
-
-# Run on Web
-flutter run -d chrome
-```
-
-### Database Setup
-
-Run the SQL migration files in `supabase/migrations/` in order (00001 → 00024) on your Supabase project via the SQL Editor.
-
-## Project Structure
+## 项目结构
 
 ```
 lib/
-├── main.dart                  # App entry point
-├── app/
-│   ├── app.dart               # MaterialApp config
-│   ├── router.dart            # go_router routes
-│   └── theme/
-│       ├── app_colors.dart    # Color system (B&W + tint/glow)
-│       ├── app_theme.dart     # Dark & Light ThemeData
-│       └── app_text_styles.dart
-├── core/
-│   ├── constants/             # Supabase tables, AMap config
-│   ├── errors/                # Error handler
-│   ├── extensions/            # Context extensions
-│   └── utils/                 # Validators
+├── app/                       # 应用配置（主题、路由）
+├── core/                      # 公共工具、常量、异常处理
 ├── features/
-│   ├── ai_avatar/             # AI avatar creation, chat, sharing
-│   ├── auth/                  # Login (Apple Sign-In)
-│   ├── buddy/                 # Buddy discovery & requests
-│   ├── challenge/             # Fitness challenges
-│   ├── chat/                  # Real-time messaging
-│   ├── gym/                   # Gym directory & map
-│   ├── notification/          # Push notifications
-│   ├── post/                  # Social feed
-│   ├── profile/               # User profile & settings
-│   └── workout/               # Workout logging & stats
-├── l10n/                      # i18n (zh_CN, en)
-└── shared/widgets/
-    ├── cap_card.dart           # Glassmorphism card system
-    ├── avatar_widget.dart
-    ├── sport_type_icon.dart
-    └── ...
-
-web/
-├── index.html                 # Flutter Web entry
-├── cap-card-preview.html      # Cap Card UI preview page
-└── styles/cap-card.css        # Cap Card CSS (CSS variables, dark mode)
-
-supabase/
-├── migrations/                # 24 SQL migration files
-├── functions/                 # Edge Functions (AI avatar logic)
-└── snippets/                  # SQL verification scripts
+│   ├── ai_avatar/             # AI 虚拟分身
+│   ├── auth/                  # 登录（Apple Sign-In）
+│   ├── buddy/                 # 伙伴发现 & 约练
+│   ├── challenge/             # 挑战赛
+│   ├── chat/                  # 实时聊天
+│   ├── gym/                   # 训练馆目录 & 地图
+│   ├── notification/          # 通知
+│   ├── post/                  # 社区动态
+│   ├── profile/               # 个人主页
+│   └── workout/               # 训练日志 & 统计
+├── l10n/                      # 国际化（中文 / 英文）
+└── shared/widgets/            # 共享组件（CapCard 等）
 ```
 
-## Cap Card UI System
+## 环境要求
+- Flutter SDK ≥ 3.24.0
+- Dart SDK ≥ 3.6.2
+- Xcode 15+
+- Supabase 项目
 
-The Cap Card is a shared component library with 4 card types:
-
-| Type | Description |
-|------|-------------|
-| **Step Card** | Gradient border, numbered badge, progress bar (light→dark) |
-| **Quote Card** | Left accent line, quotation mark, author attribution |
-| **Capability Card** | Glowing icon area, bold title, tag labels |
-| **Stats Card** | 3-column data display with dividers |
-
-Preview: open `web/cap-card-preview.html` in any browser. Supports dark/light toggle.
-
-## Localization
-
-- **简体中文** — Default
-- **English** — International users
-
-## Privacy & Compliance
-
-- **PIPL** (China) — Data export, account deletion, explicit consent
-- **PDPO** (Hong Kong) — Privacy policy in Traditional Chinese and English
-
-## License
-
-[MIT](LICENSE)
+## 注意事项
+- 本仓库为私有仓库，请勿公开分享
+- `.env` 文件包含密钥，已在 `.gitignore` 中排除
+- 高德地图 SDK 暂时禁用以支持模拟器预览
