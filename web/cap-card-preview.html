@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VerveForge — Cap Card 预览</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- Cap Card CSS -->
+  <link rel="stylesheet" href="styles/cap-card.css">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 48px 20px 60px;
+      transition: background var(--transition-base), color var(--transition-base);
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .page-header h1 {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .page-header h1 span {
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-secondary);
+      margin: 40px 0 14px;
+      padding-left: 2px;
+    }
+
+    .cards-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* 深浅色切换按钮 */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text-primary);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-base);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 100;
+    }
+
+    .theme-toggle:hover {
+      background: var(--card-bg-hover);
+      box-shadow: 0 0 16px var(--card-glow);
+      transform: scale(1.05);
+    }
+
+    .theme-toggle:active {
+      transform: scale(0.95);
+    }
+
+    /* 页脚 */
+    .page-footer {
+      text-align: center;
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid var(--divider);
+      color: var(--text-secondary);
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .page-footer strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <!-- 深浅色切换 -->
+  <button class="theme-toggle" onclick="toggleTheme()" title="切换深浅色模式">
+    <span id="theme-icon">&#9790;</span>
+  </button>
+
+  <div class="container">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <h1>Verve<span>Forge</span></h1>
+    </div>
+
+    <!-- ======================== -->
+    <!-- Stats Card（数据统计卡） -->
+    <!-- ======================== -->
+    <div class="section-label">Stats Card 数据卡</div>
+
+    <div class="cards-grid">
+      <div class="cap-card stats-card" data-animate>
+        <div class="stats-grid-divided">
+          <div class="stat-item">
+            <div class="stat-value">247</div>
+            <div class="stat-label">训练次数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">1,860</div>
+            <div class="stat-label">总分钟</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">42.5k</div>
+            <div class="stat-label">卡路里</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================== -->
+    <!-- Step Card（步骤卡） -->
+    <!-- ======================== -->
+    <div class="section-label">Step Card 步骤卡</div>
+
+    <div class="cards-grid">
+      <div class="cap-card step-card" data-animate>
+        <div class="step-header">
+          <div class="step-badge">1</div>
+          <span class="step-label">Step 1 of 4</span>
+        </div>
+        <div style="margin-bottom: 4px;">
+          <strong style="font-size: 16px;">热身阶段</strong>
+        </div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">
+          完成 5 分钟动态拉伸，包括股四头肌、腿筋和臀部的活动度练习。保持心率在 Zone 1 区间。
+        </p>
+        <div class="step-progress">
+          <div class="step-progress-bar" style="width: 25%;"></div>
+        </div>
+      </div>
+
+      <div class="cap-card step-card" data-animate>
+        <div class="step-header">
+          <div class="step-badge">3</div>
+          <span class="step-label">Step 3 of 4</span>
+        </div>
+        <div style="margin-bottom: 4px;">
+          <strong style="font-size: 16px;">高强度间歇</strong>
+        </div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">
+          8 组 Tabata 协议：20秒全力输出 + 10秒休息。运动包括波比跳、壶铃摆荡和 Box Jump。
+        </p>
+        <div class="step-progress">
+          <div class="step-progress-bar" style="width: 75%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================== -->
+    <!-- Quote Card（引用卡） -->
+    <!-- ======================== -->
+    <div class="section-label">Quote Card 引用卡</div>
+
+    <div class="cards-grid">
+      <div class="cap-card quote-card" data-animate>
+        <div class="quote-line"></div>
+        <div class="quote-content">
+          <div class="quote-mark">&ldquo;</div>
+          <p class="quote-text">
+            The body achieves what the mind believes.
+            每一次训练都是对自己极限的一次重新定义。
+          </p>
+          <p class="quote-author">&mdash; HYROX World Championship</p>
+        </div>
+      </div>
+
+      <div class="cap-card quote-card" data-animate>
+        <div class="quote-line"></div>
+        <div class="quote-content">
+          <div class="quote-mark">&ldquo;</div>
+          <p class="quote-text">
+            Discipline is choosing between what you want now and what you want most.
+          </p>
+          <p class="quote-author">&mdash; Abraham Lincoln</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================== -->
+    <!-- Capability Card（能力卡） -->
+    <!-- ======================== -->
+    <div class="section-label">Capability Card 能力卡</div>
+
+    <div class="cards-grid">
+      <div class="cap-card capability-card" data-animate>
+        <div class="cap-header">
+          <div class="cap-icon">&#9889;</div>
+          <div class="cap-title">爆发力训练</div>
+        </div>
+        <p class="cap-desc">
+          通过奥林匹克举重衍生动作（挂力翻、高拉）和增强式训练提升你的速度-力量输出。
+          系统化的周期编排确保安全且持续的进步。
+        </p>
+        <div class="cap-tags">
+          <span class="cap-tag">Power Clean</span>
+          <span class="cap-tag">Plyometrics</span>
+          <span class="cap-tag">Olympic</span>
+        </div>
+      </div>
+
+      <div class="cap-card capability-card" data-animate>
+        <div class="cap-header">
+          <div class="cap-icon">&#10084;</div>
+          <div class="cap-title">心肺耐力</div>
+        </div>
+        <p class="cap-desc">
+          结合 Zone 2 有氧基础训练和 VO2max 间歇，全面提升你的有氧系统效率。
+          支持 Apple HealthKit 实时数据同步，精准监控训练强度。
+        </p>
+        <div class="cap-tags">
+          <span class="cap-tag">Zone 2</span>
+          <span class="cap-tag">VO2max</span>
+          <span class="cap-tag">HealthKit</span>
+        </div>
+      </div>
+
+      <div class="cap-card capability-card" data-animate>
+        <div class="cap-header">
+          <div class="cap-icon">&#128170;</div>
+          <div class="cap-title">功能性力量</div>
+        </div>
+        <p class="cap-desc">
+          以复合动作为核心的力量体系——深蹲、硬拉、卧推、引体向上。
+          每个训练计划都根据你的体能水平和目标动态调整负荷与容量。
+        </p>
+        <div class="cap-tags">
+          <span class="cap-tag">Squat</span>
+          <span class="cap-tag">Deadlift</span>
+          <span class="cap-tag">Bench</span>
+          <span class="cap-tag">Pull-up</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="page-footer">
+      <strong>VerveForge</strong> &nbsp;&middot;&nbsp; Cap Card UI System
+    </div>
+
+  </div>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      const icon = document.getElementById('theme-icon');
+      icon.textContent = document.body.classList.contains('dark') ? '\u2600' : '\u263E';
+    }
+
+    // 入场动画：IntersectionObserver 触发
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.cap-card[data-animate]').forEach(card => {
+      card.style.animationPlayState = 'paused';
+      observer.observe(card);
+    });
+  </script>
+</body>
+</html>

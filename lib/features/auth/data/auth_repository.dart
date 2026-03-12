@@ -10,14 +10,17 @@ class AuthRepository {
   final _auth = SupabaseClientHelper.client.auth;
   final _log = Logger();
 
-  /// 发送手机号验证码（OTP）
-  /// [phone] 完整手机号（含国际区号，如 +8613812345678）
-  Future<void> sendOtp(String phone) async {
+  /// 邮箱注册
+  Future<AuthResponse> signUpWithEmail(String email, String password) async {
     try {
-      await _auth.signInWithOtp(phone: phone);
-      _log.i('验证码已发送至 $phone');
+      final response = await _auth.signUp(
+        email: email,
+        password: password,
+      );
+      _log.i('邮箱注册成功，用户ID: ${response.user?.id}');
+      return response;
     } on AuthException catch (e) {
-      _log.e('发送验证码失败', error: e);
+      _log.e('邮箱注册失败', error: e);
       throw AppAuthException(
         message: _mapAuthError(e.message),
         code: e.statusCode,
@@ -26,20 +29,17 @@ class AuthRepository {
     }
   }
 
-  /// 验证手机号 OTP
-  /// [phone] 完整手机号
-  /// [otp] 6 位验证码
-  Future<AuthResponse> verifyOtp(String phone, String otp) async {
+  /// 邮箱登录
+  Future<AuthResponse> signInWithEmail(String email, String password) async {
     try {
-      final response = await _auth.verifyOTP(
-        phone: phone,
-        token: otp,
-        type: OtpType.sms,
+      final response = await _auth.signInWithPassword(
+        email: email,
+        password: password,
       );
-      _log.i('OTP 验证成功，用户ID: ${response.user?.id}');
+      _log.i('邮箱登录成功，用户ID: ${response.user?.id}');
       return response;
     } on AuthException catch (e) {
-      _log.e('OTP 验证失败', error: e);
+      _log.e('邮箱登录失败', error: e);
       throw AppAuthException(
         message: _mapAuthError(e.message),
         code: e.statusCode,
@@ -121,17 +121,23 @@ class AuthRepository {
   /// 映射 Supabase Auth 错误为中文提示
   String _mapAuthError(String message) {
     final msg = message.toLowerCase();
-    if (msg.contains('invalid otp') || msg.contains('token')) {
-      return '验证码无效或已过期，请重新获取';
+    if (msg.contains('invalid login credentials')) {
+      return '邮箱或密码错误';
+    }
+    if (msg.contains('email not confirmed')) {
+      return '请先验证您的邮箱，查收确认邮件';
+    }
+    if (msg.contains('user already registered')) {
+      return '该邮箱已注册，请直接登录';
     }
     if (msg.contains('rate limit') || msg.contains('too many')) {
       return '请求过于频繁，请稍后再试';
     }
-    if (msg.contains('phone') && msg.contains('invalid')) {
-      return '手机号格式不正确';
+    if (msg.contains('invalid email')) {
+      return '邮箱格式不正确';
     }
-    if (msg.contains('user already registered')) {
-      return '该手机号已注册，将直接登录';
+    if (msg.contains('weak password') || msg.contains('password')) {
+      return '密码强度不够，至少需要6位';
     }
     if (msg.contains('network') || msg.contains('connection')) {
       return '网络连接失败，请检查网络';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:verveforge/l10n/app_localizations.dart';
 
 /// BuildContext 扩展方法
 extension ContextExtensions on BuildContext {

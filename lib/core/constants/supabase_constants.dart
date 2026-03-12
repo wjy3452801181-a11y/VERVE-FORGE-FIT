@@ -9,7 +9,7 @@ class SupabaseConstants {
   static const String gymReviews = 'gym_reviews';
   static const String userGymFavorites = 'user_gym_favorites';
   static const String gymClaims = 'gym_claims';
-  static const String buddyRequests = 'buddy_requests';
+  static const String buddies = 'buddies';
   static const String conversations = 'conversations';
   static const String conversationParticipants = 'conversation_participants';
   static const String messages = 'messages';
@@ -23,6 +23,9 @@ class SupabaseConstants {
   static const String userBlocks = 'user_blocks';
   static const String reports = 'reports';
   static const String notifications = 'notifications';
+  static const String aiAvatars = 'ai_avatars';
+  static const String aiAvatarShareLog = 'ai_avatar_share_log';
+  static const String aiAvatarPublicView = 'ai_avatar_public_view';
 
   // Storage Bucket 名
   static const String avatarsBucket = 'avatars';

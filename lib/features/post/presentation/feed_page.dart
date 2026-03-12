@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,9 +9,15 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../notification/providers/notification_provider.dart';
 import '../domain/post_model.dart';
 import '../providers/post_provider.dart';
 import 'widgets/post_card.dart';
+
+// -------------------------------------------------------
+// 涂鸦风格局部常量（仅 Feed 页内使用）
+// -------------------------------------------------------
+const _kGraffitiNeon = Color(0xFFCDFF00); // 荧光黄绿
 
 /// 动态流页 — Tab 1
 /// 3 个子 Tab：关注 / 附近 / 推荐
@@ -52,28 +60,54 @@ class _FeedPageState extends ConsumerState<FeedPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.feedTitle),
+        title: Text(
+          context.l10n.feedTitle,
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            letterSpacing: 4,
+            fontSize: 20,
+          ),
+        ),
         actions: [
           // 发布动态快捷入口
           IconButton(
             icon: const Icon(Icons.edit_note),
             onPressed: () => context.push(AppRoutes.postCreate),
           ),
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // TODO: 导航到通知页
+          Consumer(
+            builder: (context, ref, child) {
+              final unread = ref.watch(unreadCountProvider);
+              final count = unread.valueOrNull ?? 0;
+              return IconButton(
+                icon: Badge(
+                  isLabelVisible: count > 0,
+                  label: Text(count > 99 ? '99+' : '$count'),
+                  child: const Icon(Icons.notifications_outlined),
+                ),
+                onPressed: () => context.push(AppRoutes.notifications),
+              );
             },
           ),
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.primary,
+          // 荧光黄绿粗条指示器（荧光笔效果）
+          indicator: BoxDecoration(
+            color: _kGraffitiNeon,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicatorPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           labelColor: AppColors.primary,
           unselectedLabelColor:
               context.theme.colorScheme.onSurface.withValues(alpha: 0.5),
-          labelStyle: AppTextStyles.subtitle,
-          unselectedLabelStyle: AppTextStyles.body,
+          labelStyle: AppTextStyles.subtitle.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+          unselectedLabelStyle: AppTextStyles.body.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
           tabs: [
             Tab(text: context.l10n.feedTabFollowing),
             Tab(text: context.l10n.feedTabNearby),
@@ -121,7 +155,7 @@ class _FeedPageState extends ConsumerState<FeedPage>
 }
 
 // -------------------------------------------------------
-// 新动态提示横幅
+// 新动态提示横幅 — 涂鸦贴纸风格
 // -------------------------------------------------------
 
 class _NewPostsBanner extends StatelessWidget {
@@ -133,30 +167,35 @@ class _NewPostsBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onRefresh,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
-          border: Border(
-            bottom: BorderSide(
-              color: AppColors.primary.withValues(alpha: 0.2),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        child: Transform.rotate(
+          angle: -1.5 * math.pi / 180, // -1.5°
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.arrow_upward,
+                    size: 16, color: _kGraffitiNeon),
+                const SizedBox(width: 6),
+                Text(
+                  context.l10n.postNewAvailable.toUpperCase(),
+                  style: AppTextStyles.caption.copyWith(
+                    color: _kGraffitiNeon,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.arrow_upward, size: 16, color: AppColors.primary),
-            const SizedBox(width: 6),
-            Text(
-              context.l10n.postNewAvailable,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
         ),
       ),
     );

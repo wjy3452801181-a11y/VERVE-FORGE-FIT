@@ -9,10 +9,8 @@ import '../../../core/errors/error_handler.dart';
 import '../data/auth_repository.dart';
 import '../providers/auth_provider.dart';
 import 'privacy_consent_dialog.dart';
-import 'widgets/phone_input_field.dart';
-import 'widgets/otp_input_field.dart';
 
-/// 登录页 — 手机号 + OTP 验证码 + Apple 登录
+/// 登录页 — 邮箱 + 密码 + Apple 登录
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
@@ -21,25 +19,22 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String _countryCode = '+86';
   bool _privacyAgreed = false;
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  /// 完整手机号（含区号）
-  String get _fullPhone => '$_countryCode${_phoneController.text.trim()}';
-
-  /// 发送验证码
-  Future<void> _sendOtp() async {
+  /// 邮箱登录
+  Future<void> _signInWithEmail() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // 隐私政策检查
     if (!_privacyAgreed) {
       final agreed = await PrivacyConsentDialog.show(context);
       if (!agreed) return;
@@ -48,9 +43,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     ref.read(loginLoadingProvider.notifier).state = true;
     try {
-      await ref.read(authRepositoryProvider).sendOtp(_fullPhone);
-      ref.read(otpCooldownProvider.notifier).startCooldown();
-      ref.read(loginStepProvider.notifier).state = LoginStep.otp;
+      await ref.read(authRepositoryProvider).signInWithEmail(
+            _emailController.text.trim(),
+            _passwordController.text,
+          );
+      // 登录成功后路由守卫会自动跳转
     } catch (e) {
       if (mounted) ErrorHandler.showError(context, e);
     } finally {
@@ -58,12 +55,27 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
-  /// 验证 OTP
-  Future<void> _verifyOtp(String otp) async {
+  /// 邮箱注册
+  Future<void> _signUpWithEmail() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (!_privacyAgreed) {
+      final agreed = await PrivacyConsentDialog.show(context);
+      if (!agreed) return;
+      setState(() => _privacyAgreed = true);
+    }
+
     ref.read(loginLoadingProvider.notifier).state = true;
     try {
-      await ref.read(authRepositoryProvider).verifyOtp(_fullPhone, otp);
-      // 登录成功后路由守卫会自动跳转
+      await ref.read(authRepositoryProvider).signUpWithEmail(
+            _emailController.text.trim(),
+            _passwordController.text,
+          );
+      if (mounted) {
+        ErrorHandler.showSuccess(context, '注册成功！请查收邮箱确认链接');
+        // 切换到登录模式
+        ref.read(loginModeProvider.notifier).state = LoginMode.login;
+      }
     } catch (e) {
       if (mounted) ErrorHandler.showError(context, e);
     } finally {
@@ -89,16 +101,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
-  /// 返回手机号输入步骤
-  void _backToPhone() {
-    ref.read(loginStepProvider.notifier).state = LoginStep.phone;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final loginStep = ref.watch(loginStepProvider);
+    final loginMode = ref.watch(loginModeProvider);
     final isLoading = ref.watch(loginLoadingProvider);
-    final otpCooldown = ref.watch(otpCooldownProvider);
+    final passwordVisible = ref.watch(passwordVisibleProvider);
+    final isLogin = loginMode == LoginMode.login;
 
     return Scaffold(
       body: SafeArea(
@@ -134,50 +142,134 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 Text(
                   context.l10n.loginSubtitle,
                   style: AppTextStyles.caption.copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+                    color:
+                        context.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 48),
 
-                // 手机号 or OTP 输入
-                if (loginStep == LoginStep.phone) ...[
-                  _buildPhoneStep(isLoading, otpCooldown),
-                ] else ...[
-                  _buildOtpStep(isLoading, otpCooldown),
-                ],
-
-                const SizedBox(height: 32),
-
-                // 分隔线
-                if (loginStep == LoginStep.phone) ...[
-                  Row(
+                // 邮箱 + 密码表单
+                Form(
+                  key: _formKey,
+                  child: Column(
                     children: [
-                      const Expanded(child: Divider()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          context.l10n.orLoginWith,
-                          style: AppTextStyles.caption,
+                      // 邮箱输入
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: Validators.email,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                          labelText: context.l10n.emailLabel,
+                          hintText: context.l10n.emailHint,
+                          prefixIcon: const Icon(Icons.email_outlined),
                         ),
                       ),
-                      const Expanded(child: Divider()),
+                      const SizedBox(height: 16),
+
+                      // 密码输入
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: !passwordVisible,
+                        validator: Validators.password,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) =>
+                            isLogin ? _signInWithEmail() : _signUpWithEmail(),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.passwordLabel,
+                          hintText: context.l10n.passwordHint,
+                          prefixIcon: const Icon(Icons.lock_outlined),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              passwordVisible
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              ref
+                                  .read(passwordVisibleProvider.notifier)
+                                  .state = !passwordVisible;
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // 登录/注册按钮
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : (isLogin
+                                  ? _signInWithEmail
+                                  : _signUpWithEmail),
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(isLogin
+                                  ? context.l10n.login
+                                  : context.l10n.register),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // 切换登录/注册
+                      TextButton(
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                ref.read(loginModeProvider.notifier).state =
+                                    isLogin
+                                        ? LoginMode.register
+                                        : LoginMode.login;
+                              },
+                        child: Text(
+                          isLogin
+                              ? context.l10n.switchToRegister
+                              : context.l10n.switchToLogin,
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                ),
 
-                  // Apple 登录
-                  OutlinedButton.icon(
-                    onPressed: isLoading ? null : _signInWithApple,
-                    icon: const Icon(Icons.apple, size: 24),
-                    label: Text(context.l10n.signInWithApple),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                const SizedBox(height: 24),
+
+                // 分隔线
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        context.l10n.orLoginWith,
+                        style: AppTextStyles.caption,
                       ),
                     ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Apple 登录
+                OutlinedButton.icon(
+                  onPressed: isLoading ? null : _signInWithApple,
+                  icon: const Icon(Icons.apple, size: 24),
+                  label: Text(context.l10n.signInWithApple),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
-                ],
+                ),
 
                 const Spacer(flex: 3),
 
@@ -188,7 +280,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     TextSpan(
                       text: context.l10n.privacyAgreement,
                       style: AppTextStyles.caption.copyWith(
-                        color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                        color: context.colorScheme.onSurface
+                            .withValues(alpha: 0.5),
                       ),
                       children: [
                         TextSpan(
@@ -214,93 +307,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
       ),
-    );
-  }
-
-  /// 手机号输入步骤
-  Widget _buildPhoneStep(bool isLoading, int otpCooldown) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          PhoneInputField(
-            controller: _phoneController,
-            validator: Validators.phone,
-            label: context.l10n.phoneLabel,
-            hint: context.l10n.phoneHint,
-            countryCode: _countryCode,
-            onCountryCodeChanged: (code) {
-              setState(() => _countryCode = code);
-            },
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: isLoading ? null : _sendOtp,
-              child: isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(
-                      otpCooldown > 0
-                          ? '${otpCooldown}s 后重新获取'
-                          : context.l10n.getOtp,
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// OTP 验证码输入步骤
-  Widget _buildOtpStep(bool isLoading, int otpCooldown) {
-    return Column(
-      children: [
-        // 返回按钮 + 提示
-        Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: _backToPhone,
-            ),
-            Expanded(
-              child: Text(
-                '验证码已发送至 $_fullPhone',
-                style: AppTextStyles.caption,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-
-        // OTP 输入框
-        OtpInputField(
-          onCompleted: _verifyOtp,
-        ),
-        const SizedBox(height: 24),
-
-        // 重新发送
-        TextButton(
-          onPressed: otpCooldown > 0 ? null : _sendOtp,
-          child: Text(
-            otpCooldown > 0
-                ? '${otpCooldown}s 后重新发送'
-                : '重新发送验证码',
-          ),
-        ),
-
-        if (isLoading) ...[
-          const SizedBox(height: 16),
-          const CircularProgressIndicator(),
-        ],
-      ],
     );
   }
 }

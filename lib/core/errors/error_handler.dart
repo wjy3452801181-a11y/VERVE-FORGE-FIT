@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supa;
@@ -15,12 +16,24 @@ class ErrorHandler {
   );
 
   /// 处理错误并返回用户友好的消息
+  /// [error] 可以是 String（业务校验提示）或 Exception（系统异常）
   static String handleError(dynamic error) {
-    _logger.e('应用错误', error: error);
+    // 业务校验类错误（String）：仅在 debug 模式打印，不输出完整堆栈
+    if (error is String) {
+      if (kDebugMode) {
+        debugPrint('⚠️ 校验提示: $error');
+      }
+      return error;
+    }
 
+    // AppException：已知业务异常，用 warning 级别记录
     if (error is AppException) {
+      _logger.w('业务异常: ${error.message}');
       return error.message;
     }
+
+    // 以下为系统级异常，用 error 级别记录完整堆栈
+    _logger.e('应用错误', error: error);
 
     if (error is supa.AuthException) {
       return _handleAuthError(error);

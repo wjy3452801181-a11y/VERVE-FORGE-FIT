@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -11,8 +12,15 @@ import 'core/constants/storage_keys.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 加载环境变量
-  await dotenv.load(fileName: '.env');
+  // 根据编译模式加载对应环境变量
+  // Release 模式使用 .env.production（如存在），否则使用 .env
+  const envFile = kReleaseMode ? '.env.production' : '.env';
+  try {
+    await dotenv.load(fileName: envFile);
+  } catch (_) {
+    // 如果 .env.production 不存在，fallback 到 .env
+    await dotenv.load(fileName: '.env');
+  }
 
   // 初始化 Supabase
   await Supabase.initialize(

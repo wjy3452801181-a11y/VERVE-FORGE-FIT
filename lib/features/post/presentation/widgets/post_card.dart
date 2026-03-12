@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +11,12 @@ import '../../../../shared/widgets/avatar_widget.dart';
 import '../../domain/post_model.dart';
 import '../../providers/post_provider.dart';
 
-/// 动态卡片组件
+// -------------------------------------------------------
+// 涂鸦风格局部常量（仅 post_card 内使用）
+// -------------------------------------------------------
+const _kGraffitiNeon = Color(0xFFCDFF00); // 荧光黄绿
+
+/// 动态卡片组件 — 街头涂鸦风格
 class PostCard extends ConsumerWidget {
   final PostModel post;
   final VoidCallback? onTap;
@@ -27,36 +34,59 @@ class PostCard extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: context.theme.dividerColor.withValues(alpha: 0.1),
-            ),
-          ),
+          color: context.theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.black87, width: 2.5),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 作者信息行
-            _buildAuthorRow(context),
-            const SizedBox(height: 8),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 左侧彩色条
+              Container(
+                width: 4,
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(5.5),
+                    bottomLeft: Radius.circular(5.5),
+                  ),
+                ),
+              ),
+              // 主体内容
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 作者信息行
+                      _buildAuthorRow(context),
+                      const SizedBox(height: 8),
 
-            // 正文内容
-            if (post.content.isNotEmpty)
-              Text(post.content, style: AppTextStyles.body),
+                      // 正文内容
+                      if (post.content.isNotEmpty)
+                        Text(post.content, style: AppTextStyles.body),
 
-            // 照片网格
-            if (post.hasPhotos) ...[
-              const SizedBox(height: 8),
-              _buildPhotoGrid(context),
+                      // 照片网格
+                      if (post.hasPhotos) ...[
+                        const SizedBox(height: 8),
+                        _buildPhotoGrid(context),
+                      ],
+
+                      const SizedBox(height: 10),
+
+                      // 互动行（点赞、评论）
+                      _buildActionRow(context, ref),
+                    ],
+                  ),
+                ),
+              ),
             ],
-
-            const SizedBox(height: 10),
-
-            // 互动行（点赞、评论）
-            _buildActionRow(context, ref),
-          ],
+          ),
         ),
       ),
     );
@@ -66,11 +96,13 @@ class PostCard extends ConsumerWidget {
   Widget _buildAuthorRow(BuildContext context) {
     return Row(
       children: [
+        // 头像 — 橙色描边
         AvatarWidget(
           imageUrl: post.authorAvatar,
           size: 40,
           fallbackText: post.authorNickname,
           onTap: onAuthorTap,
+          showBorder: true,
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -79,7 +111,10 @@ class PostCard extends ConsumerWidget {
             children: [
               Text(
                 post.authorNickname ?? context.l10n.commonEmpty,
-                style: AppTextStyles.subtitle,
+                style: AppTextStyles.subtitle.copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 17,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -94,17 +129,24 @@ class PostCard extends ConsumerWidget {
             ],
           ),
         ),
+        // 城市标签 — 涂鸦贴纸风格
         if (post.city != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              post.city!,
-              style: AppTextStyles.label.copyWith(
-                color: AppColors.secondary,
+          Transform.rotate(
+            angle: -2 * math.pi / 180, // -2°
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: _GlowHighlight(
+                child: Text(
+                  post.city!,
+                  style: AppTextStyles.label.copyWith(
+                    color: _kGraffitiNeon,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ),
             ),
           ),
@@ -118,14 +160,20 @@ class PostCard extends ConsumerWidget {
     final count = photos.length;
 
     if (count == 1) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 240),
-          child: CachedNetworkImage(
-            imageUrl: photos[0],
-            width: double.infinity,
-            fit: BoxFit.cover,
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: Colors.black87, width: 2),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(2),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 240),
+            child: CachedNetworkImage(
+              imageUrl: photos[0],
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
           ),
         ),
       );
@@ -143,39 +191,46 @@ class PostCard extends ConsumerWidget {
       ),
       itemCount: count > 9 ? 9 : count,
       itemBuilder: (context, index) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: CachedNetworkImage(
-            imageUrl: photos[index],
-            fit: BoxFit.cover,
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Colors.black87, width: 2),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: CachedNetworkImage(
+              imageUrl: photos[index],
+              fit: BoxFit.cover,
+            ),
           ),
         );
       },
     );
   }
 
-  /// 互动行：点赞 + 评论
+  /// 互动行：点赞 + 评论 — 药丸贴纸风格
   Widget _buildActionRow(BuildContext context, WidgetRef ref) {
     final likeStatus = ref.watch(postLikeStatusProvider(post.id));
     final isLiked = likeStatus.valueOrNull ?? false;
 
     return Row(
       children: [
-        // 点赞按钮
-        _ActionButton(
+        // 点赞按钮 — 橙色药丸
+        _GraffitiPillButton(
           icon: isLiked ? Icons.favorite : Icons.favorite_border,
           label: post.likeCount > 0 ? '${post.likeCount}' : '',
-          color: isLiked ? Colors.red : null,
+          backgroundColor: isLiked ? AppColors.primary : AppColors.primary,
           onTap: () {
             ref.read(postActionProvider).toggleLike(post.id);
           },
         ),
-        const SizedBox(width: 24),
+        const SizedBox(width: 12),
 
-        // 评论按钮
-        _ActionButton(
+        // 评论按钮 — 深灰药丸
+        _GraffitiPillButton(
           icon: Icons.chat_bubble_outline,
           label: post.commentCount > 0 ? '${post.commentCount}' : '',
+          backgroundColor: Colors.grey.shade800,
           onTap: onTap,
         ),
       ],
@@ -183,42 +238,75 @@ class PostCard extends ConsumerWidget {
   }
 }
 
-/// 互动按钮
-class _ActionButton extends StatelessWidget {
+// -------------------------------------------------------
+// 荧光高亮 Widget — 模拟荧光笔效果
+// -------------------------------------------------------
+
+class _GlowHighlight extends StatelessWidget {
+  final Widget child;
+
+  const _GlowHighlight({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+      decoration: BoxDecoration(
+        color: _kGraffitiNeon.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: child,
+    );
+  }
+}
+
+// -------------------------------------------------------
+// 涂鸦药丸按钮 — 互动行专用
+// -------------------------------------------------------
+
+class _GraffitiPillButton extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color? color;
+  final Color backgroundColor;
   final VoidCallback? onTap;
 
-  const _ActionButton({
+  const _GraffitiPillButton({
     required this.icon,
     required this.label,
-    this.color,
+    required this.backgroundColor,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final defaultColor =
-        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5);
-
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: color ?? defaultColor),
-          if (label.isNotEmpty) ...[
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: color ?? defaultColor,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: Colors.white),
+            if (label.isNotEmpty) ...[
+              const SizedBox(width: 4),
+              _GlowHighlight(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
               ),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

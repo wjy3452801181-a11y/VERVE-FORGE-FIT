@@ -2,25 +2,25 @@
 class Validators {
   Validators._();
 
-  /// 手机号校验
-  static String? phone(String? value) {
-    if (value == null || value.isEmpty) {
-      return '请输入手机号';
+  /// 邮箱校验
+  static String? email(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return '请输入邮箱';
     }
-    // 中国大陆
-    if (RegExp(r'^1[3-9]\d{9}$').hasMatch(value)) return null;
-    // 香港
-    if (RegExp(r'^[5-9]\d{7}$').hasMatch(value)) return null;
-    return '请输入有效的手机号';
+    final emailRegex = RegExp(r'^[\w\-.]+@[\w\-]+(\.[\w\-]+)+$');
+    if (!emailRegex.hasMatch(value.trim())) {
+      return '请输入有效的邮箱地址';
+    }
+    return null;
   }
 
-  /// 验证码校验
-  static String? otp(String? value) {
+  /// 密码校验
+  static String? password(String? value) {
     if (value == null || value.isEmpty) {
-      return '请输入验证码';
+      return '请输入密码';
     }
-    if (value.length != 6 || !RegExp(r'^\d{6}$').hasMatch(value)) {
-      return '请输入6位数字验证码';
+    if (value.length < 6) {
+      return '密码至少需要6位';
     }
     return null;
   }

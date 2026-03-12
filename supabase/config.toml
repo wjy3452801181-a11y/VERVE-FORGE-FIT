@@ -14,8 +14,11 @@ additional_redirect_urls = ["https://localhost:3000"]
 [auth.external.apple]
 enabled = false
 
-[auth.sms]
-enabled = true
+[auth.sms.twilio]
+enabled = false
+account_sid = ""
+message_service_sid = ""
+auth_token = ""
 
 [storage]
 file_size_limit = "5MB"

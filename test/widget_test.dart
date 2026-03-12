@@ -77,37 +77,30 @@ void main() {
   // 表单校验器测试
   // ===========================================
   group('Validators', () {
-    group('手机号校验', () {
-      test('有效的中国大陆手机号', () {
-        expect(Validators.phone('13812345678'), isNull);
-        expect(Validators.phone('18999999999'), isNull);
+    group('邮箱校验', () {
+      test('有效邮箱', () {
+        expect(Validators.email('test@example.com'), isNull);
+        expect(Validators.email('user@mail.co.jp'), isNull);
       });
 
-      test('有效的香港手机号', () {
-        expect(Validators.phone('51234567'), isNull);
-        expect(Validators.phone('98765432'), isNull);
-      });
-
-      test('无效手机号', () {
-        expect(Validators.phone('12345'), isNotNull);
-        expect(Validators.phone(''), isNotNull);
-        expect(Validators.phone(null), isNotNull);
-        expect(Validators.phone('abcdefghijk'), isNotNull);
+      test('无效邮箱', () {
+        expect(Validators.email('invalid'), isNotNull);
+        expect(Validators.email(''), isNotNull);
+        expect(Validators.email(null), isNotNull);
+        expect(Validators.email('@no-user.com'), isNotNull);
       });
     });
 
-    group('验证码校验', () {
-      test('有效验证码', () {
-        expect(Validators.otp('123456'), isNull);
-        expect(Validators.otp('000000'), isNull);
+    group('密码校验', () {
+      test('有效密码', () {
+        expect(Validators.password('123456'), isNull);
+        expect(Validators.password('abcdefg'), isNull);
       });
 
-      test('无效验证码', () {
-        expect(Validators.otp('12345'), isNotNull); // 5位
-        expect(Validators.otp('1234567'), isNotNull); // 7位
-        expect(Validators.otp('abcdef'), isNotNull); // 非数字
-        expect(Validators.otp(''), isNotNull);
-        expect(Validators.otp(null), isNotNull);
+      test('无效密码', () {
+        expect(Validators.password('12345'), isNotNull); // 少于6位
+        expect(Validators.password(''), isNotNull);
+        expect(Validators.password(null), isNotNull);
       });
     });
 

@@ -1,18 +1,9 @@
-import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-/// 高德地图配置
+/// 高德地图配置（高德 SDK 暂时禁用用于模拟器预览）
 class AMapConfig {
   AMapConfig._();
 
-  static AMapApiKey get apiKey => AMapApiKey(
-        androidKey: dotenv.env['AMAP_ANDROID_KEY'] ?? '',
-        iosKey: dotenv.env['AMAP_IOS_KEY'] ?? '',
-      );
-
-  static const AMapPrivacyStatement privacyStatement = AMapPrivacyStatement(
-    hasContains: true,
-    hasShow: true,
-    hasAgree: true,
-  );
+  static dynamic get apiKey => null;
+  static dynamic get privacyStatement => null;
 }

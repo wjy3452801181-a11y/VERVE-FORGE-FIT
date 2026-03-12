@@ -1,0 +1,496 @@
+/* ============================================================
+   VerveForge — Cap Card 高端运动科技感 CSS
+   支持深色/浅色模式 · 玻璃拟态 · 纯黑白灰色调
+   ============================================================ */
+
+/* ========================
+   1. 全局 CSS 变量
+   ======================== */
+:root {
+  /* 主色调 */
+  --primary: #111111;
+  --secondary: #555555;
+  --accent: #333333;
+
+  /* 卡片 Tint（黑色不同透明度） */
+  --card-tint-05: rgba(17, 17, 17, 0.05);
+  --card-tint-10: rgba(17, 17, 17, 0.10);
+  --card-tint-15: rgba(17, 17, 17, 0.15);
+  --card-tint-20: rgba(17, 17, 17, 0.20);
+
+  /* 卡片发光 */
+  --card-glow: rgba(0, 0, 0, 0.25);
+  --card-glow-strong: rgba(0, 0, 0, 0.40);
+
+  /* 浅色模式默认值 */
+  --bg: #FFFFFF;
+  --surface: #F8F8F8;
+  --card-bg: #F2F2F2;
+  --card-bg-hover: #EAEAEA;
+  --card-border: rgba(229, 229, 229, 0.6);
+  --card-border-hover: rgba(17, 17, 17, 0.25);
+  --card-shadow: rgba(0, 0, 0, 0.10);
+  --card-shadow-hover: rgba(0, 0, 0, 0.15);
+  --text-primary: #111111;
+  --text-secondary: #888888;
+  --divider: #E0E0E0;
+
+  /* 步骤徽章 */
+  --badge-bg-from: #111111;
+  --badge-bg-to: #333333;
+  --badge-text: #FFFFFF;
+
+  /* 竖线渐变 */
+  --line-from: #111111;
+  --line-to: #555555;
+
+  /* 引用符号 */
+  --quote-mark-color: rgba(17, 17, 17, 0.3);
+
+  /* 图标区 */
+  --icon-bg-from: rgba(17, 17, 17, 0.12);
+  --icon-bg-to: rgba(17, 17, 17, 0.04);
+  --icon-color: #111111;
+  --icon-glow: rgba(0, 0, 0, 0.15);
+
+  /* 进度条 */
+  --progress-fill: #111111;
+
+  /* 动画 */
+  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+  --transition-base: 0.3s var(--ease-out-cubic);
+}
+
+/* ========================
+   深色模式
+   ======================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0A0A0A;
+    --surface: #141414;
+    --card-bg: #1A1A1A;
+    --card-bg-hover: #222222;
+    --card-border: rgba(51, 51, 51, 0.5);
+    --card-border-hover: rgba(255, 255, 255, 0.25);
+    --card-shadow: rgba(0, 0, 0, 0.20);
+    --card-shadow-hover: rgba(0, 0, 0, 0.30);
+    --card-glow: rgba(255, 255, 255, 0.25);
+    --card-glow-strong: rgba(255, 255, 255, 0.40);
+    --text-primary: #F5F5F5;
+    --text-secondary: #999999;
+    --divider: #2A2A2A;
+
+    --card-tint-05: rgba(255, 255, 255, 0.05);
+    --card-tint-10: rgba(255, 255, 255, 0.10);
+    --card-tint-15: rgba(255, 255, 255, 0.15);
+
+    --badge-bg-from: #FFFFFF;
+    --badge-bg-to: #CCCCCC;
+    --badge-text: #111111;
+
+    --line-from: #FFFFFF;
+    --line-to: #666666;
+
+    --quote-mark-color: rgba(255, 255, 255, 0.4);
+
+    --icon-bg-from: rgba(255, 255, 255, 0.15);
+    --icon-bg-to: rgba(255, 255, 255, 0.05);
+    --icon-color: #FFFFFF;
+    --icon-glow: rgba(255, 255, 255, 0.15);
+
+    --progress-fill: #FFFFFF;
+  }
+}
+
+/* 显式 .dark 类覆盖 */
+.dark {
+  --bg: #0A0A0A;
+  --surface: #141414;
+  --card-bg: #1A1A1A;
+  --card-bg-hover: #222222;
+  --card-border: rgba(51, 51, 51, 0.5);
+  --card-border-hover: rgba(255, 255, 255, 0.25);
+  --card-shadow: rgba(0, 0, 0, 0.20);
+  --card-shadow-hover: rgba(0, 0, 0, 0.30);
+  --card-glow: rgba(255, 255, 255, 0.25);
+  --card-glow-strong: rgba(255, 255, 255, 0.40);
+  --text-primary: #F5F5F5;
+  --text-secondary: #999999;
+  --divider: #2A2A2A;
+
+  --card-tint-05: rgba(255, 255, 255, 0.05);
+  --card-tint-10: rgba(255, 255, 255, 0.10);
+  --card-tint-15: rgba(255, 255, 255, 0.15);
+
+  --badge-bg-from: #FFFFFF;
+  --badge-bg-to: #CCCCCC;
+  --badge-text: #111111;
+
+  --line-from: #FFFFFF;
+  --line-to: #666666;
+
+  --quote-mark-color: rgba(255, 255, 255, 0.4);
+
+  --icon-bg-from: rgba(255, 255, 255, 0.15);
+  --icon-bg-to: rgba(255, 255, 255, 0.05);
+  --icon-color: #FFFFFF;
+  --icon-glow: rgba(255, 255, 255, 0.15);
+
+  --progress-fill: #FFFFFF;
+}
+
+/* ========================
+   2. .cap-card 基础样式
+   ======================== */
+.cap-card {
+  position: relative;
+  background:
+    radial-gradient(ellipse at top left, var(--card-tint-05) 0%, transparent 60%),
+    var(--card-bg);
+  border: 0.5px solid var(--card-border);
+  border-radius: 24px;
+  padding: 20px;
+  margin: 6px 0;
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* 玻璃拟态 */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  /* 阴影 */
+  box-shadow: 0 4px 12px var(--card-shadow);
+
+  /* 过渡动画 */
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-base),
+    background var(--transition-base);
+
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+}
+
+/* ========================
+   3. .cap-card hover 效果
+   ======================== */
+.cap-card:hover {
+  transform: translateY(-3px) scale(1.015);
+  border-color: var(--card-border-hover);
+  border-width: 1px;
+  background:
+    radial-gradient(ellipse at top left, var(--card-tint-15) 0%, transparent 60%),
+    var(--card-bg-hover);
+  box-shadow:
+    0 8px 24px var(--card-shadow-hover),
+    0 0 20px rgba(0, 0, 0, 0.06);
+}
+
+.cap-card:active {
+  transform: translateY(-1px) scale(1.005);
+  transition-duration: 0.1s;
+}
+
+/* ========================
+   4. Step Card（步骤卡）
+   ======================== */
+.cap-card.step-card {
+  position: relative;
+  overflow: hidden;
+}
+
+/* 渐变边框模拟 */
+.cap-card.step-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 1.5px;
+  background: linear-gradient(135deg, var(--badge-bg-from), var(--badge-bg-to), transparent);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.4;
+  transition: opacity var(--transition-base);
+}
+
+.cap-card.step-card:hover::before {
+  opacity: 0.8;
+}
+
+.cap-card.step-card .step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--badge-bg-from), var(--badge-bg-to));
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--badge-text);
+}
+
+.cap-card.step-card .step-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-left: 12px;
+}
+
+.cap-card.step-card .step-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* 进度条 */
+.cap-card.step-card .step-progress {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--divider);
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.cap-card.step-card .step-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--divider), var(--progress-fill));
+  transition: width 0.5s var(--ease-out-cubic);
+}
+
+/* ========================
+   5. Quote Card（引用卡）
+   ======================== */
+.cap-card.quote-card {
+  display: flex;
+  flex-direction: row;
+  padding: 20px;
+}
+
+.cap-card.quote-card .quote-line {
+  width: 4px;
+  min-height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, var(--line-from), var(--line-to));
+  flex-shrink: 0;
+  margin-right: 16px;
+}
+
+.cap-card.quote-card .quote-content {
+  flex: 1;
+}
+
+.cap-card.quote-card .quote-mark {
+  font-family: 'Inter', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--quote-mark-color);
+  line-height: 0.8;
+  margin-bottom: 4px;
+}
+
+.cap-card.quote-card .quote-text {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.cap-card.quote-card .quote-author {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-top: 12px;
+}
+
+/* ========================
+   6. Capability Card（能力卡）
+   ======================== */
+.cap-card.capability-card .cap-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--icon-bg-from), var(--icon-bg-to));
+  box-shadow: 0 0 12px var(--icon-glow);
+  font-size: 24px;
+  color: var(--icon-color);
+  transition: box-shadow var(--transition-base);
+}
+
+.cap-card.capability-card:hover .cap-icon {
+  box-shadow:
+    0 0 20px var(--icon-glow),
+    0 0 40px rgba(0, 0, 0, 0.06);
+}
+
+.cap-card.capability-card .cap-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.cap-card.capability-card .cap-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cap-card.capability-card .cap-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* ========================
+   7. Stats Card（数据统计卡）
+   ======================== */
+.cap-card.stats-card .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  text-align: center;
+}
+
+.cap-card.stats-card .stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cap-card.stats-card .stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.cap-card.stats-card .stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cap-card.stats-card .stat-divider {
+  width: 1px;
+  background: var(--divider);
+  align-self: stretch;
+}
+
+/* Stats card 分隔线版本 */
+.cap-card.stats-card .stats-grid-divided {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 0;
+}
+
+.cap-card.stats-card .stats-grid-divided .stat-item {
+  flex: 1;
+  position: relative;
+}
+
+.cap-card.stats-card .stats-grid-divided .stat-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 10%;
+  height: 80%;
+  width: 1px;
+  background: var(--divider);
+}
+
+/* ========================
+   8. Tag 标签
+   ======================== */
+.cap-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  background: var(--card-tint-10);
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border);
+  transition: all var(--transition-base);
+}
+
+.cap-tag:hover {
+  background: var(--card-tint-20);
+  color: var(--text-primary);
+}
+
+.cap-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* ========================
+   9. 入场动画
+   ======================== */
+@keyframes cardFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cap-card[data-animate] {
+  opacity: 0;
+  animation: cardFadeUp 0.5s var(--ease-out-cubic) forwards;
+}
+
+.cap-card[data-animate]:nth-child(1) { animation-delay: 0.05s; }
+.cap-card[data-animate]:nth-child(2) { animation-delay: 0.1s; }
+.cap-card[data-animate]:nth-child(3) { animation-delay: 0.15s; }
+.cap-card[data-animate]:nth-child(4) { animation-delay: 0.2s; }
+.cap-card[data-animate]:nth-child(5) { animation-delay: 0.25s; }
+.cap-card[data-animate]:nth-child(6) { animation-delay: 0.3s; }
+.cap-card[data-animate]:nth-child(7) { animation-delay: 0.35s; }
+.cap-card[data-animate]:nth-child(8) { animation-delay: 0.4s; }
+
+/* ========================
+   10. 响应式适配
+   ======================== */
+@media (max-width: 640px) {
+  .cap-card {
+    border-radius: 20px;
+    padding: 16px;
+    margin: 4px 0;
+  }
+
+  .cap-card.capability-card .cap-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 20px;
+  }
+
+  .cap-card.stats-card .stat-value {
+    font-size: 22px;
+  }
+
+  .cap-card.stats-card .stats-grid {
+    gap: 8px;
+  }
+}

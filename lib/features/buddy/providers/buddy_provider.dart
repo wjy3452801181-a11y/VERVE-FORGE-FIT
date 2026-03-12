@@ -4,6 +4,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../gym/providers/gym_provider.dart';
 import '../data/buddy_repository.dart';
 import '../domain/buddy_model.dart';
+import '../domain/buddy_request_model.dart';
 
 /// 伙伴筛选条件
 class BuddyFilter {
@@ -30,7 +31,6 @@ final buddyFilterProvider = StateProvider<BuddyFilter>((ref) {
 });
 
 /// 附近伙伴 Provider（基于位置 + 筛选）
-/// 复用 gym_provider 的 currentLocationProvider 避免重复定位
 final nearbyBuddiesProvider = FutureProvider<List<BuddyModel>>((ref) async {
   final location = await ref.watch(currentLocationProvider.future);
   final filter = ref.watch(buddyFilterProvider);
@@ -45,7 +45,6 @@ final nearbyBuddiesProvider = FutureProvider<List<BuddyModel>>((ref) async {
     );
   }
 
-  // 无定位权限时按默认城市查询
   return repo.listByCity(
     city: 'shanghai',
     sportType: filter.sportType,
@@ -100,7 +99,6 @@ class BuddyListNotifier extends AsyncNotifier<List<BuddyModel>> {
     return data;
   }
 
-  /// 加载更多
   Future<void> loadMore() async {
     if (!_hasMore) return;
     _page++;
@@ -110,7 +108,6 @@ class BuddyListNotifier extends AsyncNotifier<List<BuddyModel>> {
     state = AsyncValue.data([...current, ...more]);
   }
 
-  /// 刷新
   Future<void> refresh() async {
     _page = 0;
     _hasMore = true;
@@ -128,9 +125,84 @@ class BuddyRequestAction {
 
   BuddyRequestAction(this._ref);
 
-  /// 发送约练请求
   Future<void> send(String targetUserId) async {
     final repo = _ref.read(buddyRepositoryProvider);
     await repo.sendBuddyRequest(targetUserId);
+  }
+}
+
+// ═══════════════════════════════════════
+// 好友请求列表 Providers
+// ═══════════════════════════════════════
+
+/// 收到的好友请求
+final receivedRequestsProvider =
+    AsyncNotifierProvider<ReceivedRequestsNotifier, List<BuddyRequestModel>>(
+  ReceivedRequestsNotifier.new,
+);
+
+class ReceivedRequestsNotifier extends AsyncNotifier<List<BuddyRequestModel>> {
+  @override
+  Future<List<BuddyRequestModel>> build() {
+    return ref.read(buddyRepositoryProvider).getReceivedRequests();
+  }
+
+  Future<void> accept(String requestId) async {
+    await ref.read(buddyRepositoryProvider).acceptRequest(requestId);
+    ref.invalidateSelf();
+    ref.invalidate(acceptedBuddiesProvider);
+  }
+
+  Future<void> reject(String requestId) async {
+    await ref.read(buddyRepositoryProvider).rejectRequest(requestId);
+    ref.invalidateSelf();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+  }
+}
+
+/// 发出的好友请求
+final sentRequestsProvider =
+    AsyncNotifierProvider<SentRequestsNotifier, List<BuddyRequestModel>>(
+  SentRequestsNotifier.new,
+);
+
+class SentRequestsNotifier extends AsyncNotifier<List<BuddyRequestModel>> {
+  @override
+  Future<List<BuddyRequestModel>> build() {
+    return ref.read(buddyRepositoryProvider).getSentRequests();
+  }
+
+  Future<void> cancel(String requestId) async {
+    await ref.read(buddyRepositoryProvider).cancelRequest(requestId);
+    ref.invalidateSelf();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+  }
+}
+
+/// 好友列表（已接受）
+final acceptedBuddiesProvider =
+    AsyncNotifierProvider<AcceptedBuddiesNotifier, List<BuddyRequestModel>>(
+  AcceptedBuddiesNotifier.new,
+);
+
+class AcceptedBuddiesNotifier extends AsyncNotifier<List<BuddyRequestModel>> {
+  @override
+  Future<List<BuddyRequestModel>> build() {
+    return ref.read(buddyRepositoryProvider).getAcceptedBuddies();
+  }
+
+  Future<void> remove(String requestId) async {
+    await ref.read(buddyRepositoryProvider).removeBuddy(requestId);
+    ref.invalidateSelf();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
   }
 }

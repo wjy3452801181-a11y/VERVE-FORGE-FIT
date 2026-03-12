@@ -31,13 +31,13 @@ dependencies:
   fl_chart: any
   flutter_staggered_grid_view: any
 
-  # 地图（高德）
-  amap_flutter_map: ^3.0.0
-  amap_flutter_location: ^3.0.0
-  amap_flutter_base: ^3.0.0
+  # 地图（高德）— 暂时注释以支持模拟器预览（SDK 无 simulator arm64）
+  # amap_flutter_map: ^3.0.0
+  # amap_flutter_location: ^3.0.0
+  # amap_flutter_base: ^3.0.0
 
   # 健康数据
-  health: ^11.0.0                    # W3 启用
+  health: ^13.1.4                    # W3 启用
 
   # Apple 登录
   sign_in_with_apple: ^6.1.0
