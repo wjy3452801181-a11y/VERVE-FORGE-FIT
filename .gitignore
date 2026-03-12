@@ -1,9 +1,85 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
+# ================================
+# VerveForge .gitignore
+# ================================
+
+# Flutter/Dart 相关
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.pub-cache/
+.pub/
+
+# 代码生成产物
+*.g.dart
+*.freezed.dart
+
+# iOS 相关
+ios/.generated/
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner/GoogleService-Info.plist
+ios/Pods/
+ios/.symlinks/
+ios/Runner.xcworkspace/xcshareddata/
+
+# Android 相关
+android/.gradle/
+android/local.properties
+android/app/build/
+android/app/debug
+android/app/profile
+android/app/release
+android/app/google-services.json
+android/app/src/main/res/raw/google-services.json
+
+# 环境变量与密钥
+.env
+.env.*
+!.env.example
+!.env.production.example
+.supabase/
+service_role_key
+*.key
+*.pem
+*.jks
+*.keystore
+*.p12
+
+# Supabase 本地
+supabase/.temp/
+
+# macOS 系统文件
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# 编辑器与 IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# 日志与临时文件
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Symbolication / Obfuscation
+app.*.symbols
+app.*.map.json
+
+# 其他
+*.class
+*.pyc
 .atom/
 .build/
 .buildlog/
@@ -11,55 +87,3 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-# 环境变量（包含密钥，不可提交）
-.env
-.env.production
-!.env.example
-!.env.production.example
-
-# 代码生成产物
-*.g.dart
-*.freezed.dart
-
-# iOS
-ios/Pods/
-ios/.symlinks/
-ios/Runner.xcworkspace/xcshareddata/
-ios/Flutter/Flutter.framework
-ios/Flutter/Flutter.podspec
-
-# Supabase 本地
-supabase/.temp/
