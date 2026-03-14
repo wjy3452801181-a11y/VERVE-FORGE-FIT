@@ -163,7 +163,7 @@ class _ChallengeCreatePageState extends ConsumerState<ChallengeCreatePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: DropdownButtonFormField<String>(
-                value: _city,
+                initialValue: _city,
                 decoration: InputDecoration(
                   labelText: context.l10n.challengeCity,
                   border: const OutlineInputBorder(),

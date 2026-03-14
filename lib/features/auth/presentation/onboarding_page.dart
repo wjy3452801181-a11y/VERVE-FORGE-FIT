@@ -384,7 +384,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
           // 性别（可选）
           DropdownButtonFormField<String>(
-            value: _selectedGender,
+            initialValue: _selectedGender,
             decoration: const InputDecoration(
               labelText: '性别（可选）',
               prefixIcon: Icon(Icons.wc_outlined),
@@ -402,7 +402,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
           // 经验等级（可选）
           DropdownButtonFormField<String>(
-            value: _selectedLevel,
+            initialValue: _selectedLevel,
             decoration: const InputDecoration(
               labelText: '运动经验（可选）',
               prefixIcon: Icon(Icons.trending_up_outlined),

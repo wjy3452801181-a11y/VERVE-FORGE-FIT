@@ -49,7 +49,7 @@ class _PrivacySettingsPageState extends ConsumerState<PrivacySettingsPage> {
                   subtitle: const Text('关闭后其他用户无法在附近发现你'),
                   value: profile?.isDiscoverable ?? true,
                   onChanged: (v) => _updateVisibility(isDiscoverable: v),
-                  activeColor: AppColors.primary,
+                  activeTrackColor: AppColors.primary,
                 ),
                 const Divider(height: 1, indent: 16),
                 SwitchListTile(
@@ -57,7 +57,7 @@ class _PrivacySettingsPageState extends ConsumerState<PrivacySettingsPage> {
                   subtitle: const Text('关闭后其他用户无法查看你的训练数据'),
                   value: profile?.showWorkoutStats ?? true,
                   onChanged: (v) => _updateVisibility(showWorkoutStats: v),
-                  activeColor: AppColors.primary,
+                  activeTrackColor: AppColors.primary,
                 ),
               ],
             ),

@@ -34,8 +34,11 @@ class ChallengeParticipantModel {
     this.progressPct,
   });
 
-  /// 从 Supabase JSON 构造（兼容 challenge_participants 表和 challenge_leaderboard 视图）
+  /// 从 Supabase JSON 构造（兼容嵌套 profiles JOIN 和平面视图两种格式）
   factory ChallengeParticipantModel.fromJson(Map<String, dynamic> json) {
+    // 支持嵌套 profiles JOIN
+    final profile = json['profiles'] as Map<String, dynamic>?;
+
     return ChallengeParticipantModel(
       id: (json['participant_id'] ?? json['id']) as String,
       challengeId: json['challenge_id'] as String,
@@ -47,8 +50,10 @@ class ChallengeParticipantModel {
       lastCheckInAt: json['last_check_in_at'] != null
           ? DateTime.parse(json['last_check_in_at'] as String)
           : null,
-      nickname: json['nickname'] as String?,
-      avatarUrl: json['avatar_url'] as String?,
+      nickname: profile?['nickname'] as String? ??
+          json['nickname'] as String?,
+      avatarUrl: profile?['avatar_url'] as String? ??
+          json['avatar_url'] as String?,
       goalType: json['goal_type'] as String?,
       goalValue: json['goal_value'] as int?,
       sportType: json['sport_type'] as String?,

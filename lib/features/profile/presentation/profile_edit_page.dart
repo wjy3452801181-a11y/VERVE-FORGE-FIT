@@ -152,7 +152,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
 
             // 性别
             DropdownButtonFormField<String>(
-              value: _selectedGender,
+              initialValue: _selectedGender,
               decoration: InputDecoration(
                 labelText: context.l10n.profileGender,
                 prefixIcon: const Icon(Icons.wc_outlined),
@@ -170,7 +170,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
 
             // 城市
             DropdownButtonFormField<String>(
-              value: _selectedCity,
+              initialValue: _selectedCity,
               decoration: InputDecoration(
                 labelText: context.l10n.profileCity,
                 prefixIcon: const Icon(Icons.location_city),
@@ -195,7 +195,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
 
             // 经验等级
             DropdownButtonFormField<String>(
-              value: _selectedLevel,
+              initialValue: _selectedLevel,
               decoration: InputDecoration(
                 labelText: context.l10n.profileExperienceLevel,
                 prefixIcon: const Icon(Icons.trending_up_outlined),

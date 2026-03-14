@@ -128,7 +128,7 @@ class SettingsPage extends ConsumerWidget {
                         title: Text(context.l10n.healthSync),
                         subtitle: Text(context.l10n.healthSyncDescription),
                         value: syncState.isEnabled,
-                        activeColor: AppColors.primary,
+                        activeTrackColor: AppColors.primary,
                         onChanged: (_) {
                           ref.read(healthSyncProvider.notifier).toggleSync();
                         },

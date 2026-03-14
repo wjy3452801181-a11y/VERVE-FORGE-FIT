@@ -1,8 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
@@ -16,8 +15,20 @@ import '../../providers/post_provider.dart';
 // -------------------------------------------------------
 const _kGraffitiNeon = Color(0xFFCDFF00); // 荧光黄绿
 
+/// 图片缩略图解码宽度上限（像素）
+/// 【性能优化】限制 CachedNetworkImage 解码尺寸，降低 GPU 内存
+const _kThumbDecodeWidth = 400;
+
 /// 动态卡片组件 — 街头涂鸦风格
-class PostCard extends ConsumerWidget {
+///
+/// 【性能优化说明】
+/// 1. 移除 IntrinsicHeight — 改用左侧 Border 装饰替代独立 Container，
+///    避免 O(N) 的双次布局开销
+/// 2. 内嵌 like 状态 — 优先使用 PostModel.isLiked 字段（服务端一次查询返回），
+///    仅回退到 postLikeStatusProvider 兜底
+/// 3. CachedNetworkImage 添加 placeholder（Shimmer）+ memCacheWidth 限制解码尺寸
+/// 4. 互动行抽取为独立 Consumer，避免 like 状态变化导致整张卡片 rebuild
+class PostCard extends StatelessWidget {
   final PostModel post;
   final VoidCallback? onTap;
   final VoidCallback? onAuthorTap;
@@ -30,62 +41,52 @@ class PostCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: context.theme.colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.black87, width: 2.5),
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 左侧彩色条
-              Container(
-                width: 4,
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(5.5),
-                    bottomLeft: Radius.circular(5.5),
-                  ),
-                ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: context.theme.colorScheme.surface,
+              border: const Border(
+                left: BorderSide(color: AppColors.primary, width: 4),
+                top: BorderSide(color: Colors.black87, width: 2.5),
+                right: BorderSide(color: Colors.black87, width: 2.5),
+                bottom: BorderSide(color: Colors.black87, width: 2.5),
               ),
-              // 主体内容
-              Expanded(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 作者信息行
-                      _buildAuthorRow(context),
-                      const SizedBox(height: 8),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 作者信息行
+                  _buildAuthorRow(context),
+                  const SizedBox(height: 8),
 
-                      // 正文内容
-                      if (post.content.isNotEmpty)
-                        Text(post.content, style: AppTextStyles.body),
+                  // 正文内容
+                  if (post.content.isNotEmpty)
+                    Text(post.content, style: AppTextStyles.body),
 
-                      // 照片网格
-                      if (post.hasPhotos) ...[
-                        const SizedBox(height: 8),
-                        _buildPhotoGrid(context),
-                      ],
+                  // 照片网格
+                  if (post.hasPhotos) ...[
+                    const SizedBox(height: 8),
+                    _buildPhotoGrid(context),
+                  ],
 
-                      const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                      // 互动行（点赞、评论）
-                      _buildActionRow(context, ref),
-                    ],
+                  // 互动行用独立 Consumer 包裹
+                  _PostActionRow(
+                    post: post,
+                    onCommentTap: onTap,
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -129,34 +130,14 @@ class PostCard extends ConsumerWidget {
             ],
           ),
         ),
-        // 城市标签 — 涂鸦贴纸风格
-        if (post.city != null)
-          Transform.rotate(
-            angle: -2 * math.pi / 180, // -2°
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: _GlowHighlight(
-                child: Text(
-                  post.city!,
-                  style: AppTextStyles.label.copyWith(
-                    color: _kGraffitiNeon,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-          ),
+        // 城市标签已移除（数据库无 city 列）
       ],
     );
   }
 
   /// 照片网格（1 张全宽，2-3 张一行，4+ 九宫格）
   Widget _buildPhotoGrid(BuildContext context) {
-    final photos = post.photos;
+    final photos = post.imageUrls;
     final count = photos.length;
 
     if (count == 1) {
@@ -169,10 +150,14 @@ class PostCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(2),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 240),
+            // 【性能优化】添加 Shimmer placeholder + memCacheWidth 限制解码尺寸
             child: CachedNetworkImage(
               imageUrl: photos[0],
               width: double.infinity,
               fit: BoxFit.cover,
+              memCacheWidth: _kThumbDecodeWidth,
+              placeholder: (_, __) => const _ImageShimmer(height: 200),
+              errorWidget: (_, __, ___) => const _ImageErrorPlaceholder(),
             ),
           ),
         ),
@@ -181,6 +166,7 @@ class PostCard extends ConsumerWidget {
 
     // 多张照片 — 网格
     final crossAxisCount = count <= 3 ? count : 3;
+    final displayCount = count > 9 ? 9 : count;
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -189,7 +175,7 @@ class PostCard extends ConsumerWidget {
         crossAxisSpacing: 4,
         mainAxisSpacing: 4,
       ),
-      itemCount: count > 9 ? 9 : count,
+      itemCount: displayCount,
       itemBuilder: (context, index) {
         return Container(
           decoration: BoxDecoration(
@@ -198,28 +184,55 @@ class PostCard extends ConsumerWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(2),
+            // 【性能优化】memCacheWidth 限制网格图解码宽度，大幅减少 GPU 纹理内存
             child: CachedNetworkImage(
               imageUrl: photos[index],
               fit: BoxFit.cover,
+              memCacheWidth: _kThumbDecodeWidth,
+              placeholder: (_, __) => const _ImageShimmer(),
+              errorWidget: (_, __, ___) => const _ImageErrorPlaceholder(),
             ),
           ),
         );
       },
     );
   }
+}
 
-  /// 互动行：点赞 + 评论 — 药丸贴纸风格
-  Widget _buildActionRow(BuildContext context, WidgetRef ref) {
-    final likeStatus = ref.watch(postLikeStatusProvider(post.id));
-    final isLiked = likeStatus.valueOrNull ?? false;
+// -------------------------------------------------------
+// 【性能优化】互动行 — 独立 Consumer 隔离 rebuild 范围
+// 点赞状态变化只重建此组件，不影响卡片其余部分
+// -------------------------------------------------------
+
+class _PostActionRow extends ConsumerWidget {
+  final PostModel post;
+  final VoidCallback? onCommentTap;
+
+  const _PostActionRow({
+    required this.post,
+    this.onCommentTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 【性能优化】优先使用 PostModel 内嵌的 isLiked 字段
+    // 该字段由服务端查询时一次返回，避免每张卡片独立发起 N 次网络请求
+    // 仅当 post.isLiked == null（旧数据兼容）时回退到独立 Provider
+    final bool isLiked;
+    if (post.isLiked != null) {
+      isLiked = post.isLiked!;
+    } else {
+      final likeStatus = ref.watch(postLikeStatusProvider(post.id));
+      isLiked = likeStatus.valueOrNull ?? false;
+    }
 
     return Row(
       children: [
         // 点赞按钮 — 橙色药丸
         _GraffitiPillButton(
           icon: isLiked ? Icons.favorite : Icons.favorite_border,
-          label: post.likeCount > 0 ? '${post.likeCount}' : '',
-          backgroundColor: isLiked ? AppColors.primary : AppColors.primary,
+          label: post.likesCount > 0 ? '${post.likesCount}' : '',
+          backgroundColor: AppColors.primary,
           onTap: () {
             ref.read(postActionProvider).toggleLike(post.id);
           },
@@ -229,11 +242,53 @@ class PostCard extends ConsumerWidget {
         // 评论按钮 — 深灰药丸
         _GraffitiPillButton(
           icon: Icons.chat_bubble_outline,
-          label: post.commentCount > 0 ? '${post.commentCount}' : '',
+          label: post.commentsCount > 0 ? '${post.commentsCount}' : '',
           backgroundColor: Colors.grey.shade800,
-          onTap: onTap,
+          onTap: onCommentTap,
         ),
       ],
+    );
+  }
+}
+
+// -------------------------------------------------------
+// 【性能优化】图片加载 Shimmer 占位 — 替代空白等待
+// -------------------------------------------------------
+
+class _ImageShimmer extends StatelessWidget {
+  final double? height;
+
+  const _ImageShimmer({this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Shimmer.fromColors(
+      baseColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
+      highlightColor:
+          isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F5F5),
+      child: Container(
+        height: height,
+        color: Colors.white,
+      ),
+    );
+  }
+}
+
+// -------------------------------------------------------
+// 图片加载失败占位
+// -------------------------------------------------------
+
+class _ImageErrorPlaceholder extends StatelessWidget {
+  const _ImageErrorPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: context.theme.colorScheme.surfaceContainerHighest,
+      child: const Center(
+        child: Icon(Icons.broken_image_outlined, size: 32, color: Colors.grey),
+      ),
     );
   }
 }

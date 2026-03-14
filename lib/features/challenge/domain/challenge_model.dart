@@ -48,8 +48,11 @@ class ChallengeModel {
     this.isJoined,
   });
 
-  /// 从 Supabase JSON 构造
+  /// 从 Supabase JSON 构造（支持嵌套 profiles JOIN 和平面视图两种格式）
   factory ChallengeModel.fromJson(Map<String, dynamic> json) {
+    // 支持嵌套 profiles JOIN（来自 challenges 表直接查询）
+    final profile = json['profiles'] as Map<String, dynamic>?;
+
     return ChallengeModel(
       id: json['id'] as String,
       creatorId: json['creator_id'] as String,
@@ -71,8 +74,10 @@ class ChallengeModel {
       deletedAt: json['deleted_at'] != null
           ? DateTime.parse(json['deleted_at'] as String)
           : null,
-      creatorNickname: json['creator_nickname'] as String?,
-      creatorAvatar: json['creator_avatar'] as String?,
+      creatorNickname: profile?['nickname'] as String? ??
+          json['creator_nickname'] as String?,
+      creatorAvatar: profile?['avatar_url'] as String? ??
+          json['creator_avatar'] as String?,
       isJoined: json['is_joined'] as bool?,
     );
   }

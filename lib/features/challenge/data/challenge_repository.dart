@@ -75,7 +75,7 @@ class ChallengeRepository {
     );
   }
 
-  /// 获取挑战赛列表（使用 challenge_summary 视图）
+  /// 获取挑战赛列表（直接查询 challenges 表 + profiles JOIN）
   Future<List<ChallengeModel>> list({
     int page = 0,
     int pageSize = 20,
@@ -83,7 +83,10 @@ class ChallengeRepository {
     String? sportType,
     String? status,
   }) async {
-    var query = SupabaseClientHelper.from('challenge_summary').select();
+    var query = SupabaseClientHelper.from(SupabaseConstants.challenges)
+        .select('*, profiles!challenges_creator_id_fkey(nickname, avatar_url)');
+
+    query = query.isFilter('deleted_at', null);
 
     if (city != null) {
       query = query.eq('city', city);
@@ -104,9 +107,10 @@ class ChallengeRepository {
 
   /// 获取单个挑战赛详情
   Future<ChallengeModel?> get(String id) async {
-    final data = await SupabaseClientHelper.from('challenge_summary')
-        .select()
+    final data = await SupabaseClientHelper.from(SupabaseConstants.challenges)
+        .select('*, profiles!challenges_creator_id_fkey(nickname, avatar_url)')
         .eq('id', id)
+        .isFilter('deleted_at', null)
         .maybeSingle();
     if (data == null) return null;
     return ChallengeModel.fromJson(data);
@@ -140,17 +144,19 @@ class ChallengeRepository {
   }
 
   // -------------------------------------------------------
-  // 排行榜（使用 challenge_leaderboard 视图）
+  // 排行榜
   // -------------------------------------------------------
 
-  /// 获取排行榜数据
+  /// 获取排行榜数据（直接查询 challenge_participants + profiles JOIN）
   Future<List<ChallengeParticipantModel>> getLeaderboard(
     String challengeId,
   ) async {
-    final data = await SupabaseClientHelper.from('challenge_leaderboard')
-        .select()
+    final data = await SupabaseClientHelper.from(
+            SupabaseConstants.challengeParticipants)
+        .select('*, profiles!challenge_participants_user_id_fkey(nickname, avatar_url)')
         .eq('challenge_id', challengeId)
-        .order('rank', ascending: true);
+        .order('progress_value', ascending: false)
+        .order('last_check_in_at', ascending: true, nullsFirst: false);
 
     return (data as List)
         .map((e) => ChallengeParticipantModel.fromJson(e))

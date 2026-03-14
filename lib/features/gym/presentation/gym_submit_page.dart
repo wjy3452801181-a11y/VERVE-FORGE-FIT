@@ -89,7 +89,7 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: DropdownButtonFormField<String>(
-                value: _city,
+                initialValue: _city,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                 ),

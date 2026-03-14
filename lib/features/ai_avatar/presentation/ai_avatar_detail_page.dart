@@ -422,7 +422,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                   ),
                   Switch(
                     value: avatar.autoReplyEnabled,
-                    activeColor: AppColors.info,
+                    activeTrackColor: AppColors.info,
                     onChanged: (value) async {
                       // PIPL 合规：开启前检查是否已授权
                       if (value && avatar.aiConsentAt == null) {

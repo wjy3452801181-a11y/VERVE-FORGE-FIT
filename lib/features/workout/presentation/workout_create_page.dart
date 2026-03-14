@@ -200,7 +200,7 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
                 title: Text(context.l10n.workoutShareAsPost),
                 value: _isPublic,
                 onChanged: (v) => setState(() => _isPublic = v),
-                activeColor: AppColors.primary,
+                activeTrackColor: AppColors.primary,
               ),
             ),
             const SizedBox(height: 24),
