@@ -288,17 +288,30 @@ class AiAvatarChatState {
 
 // ============================================================
 // 分身聊天 Provider
+// 【性能优化】使用 AiAvatarChatState 管理完整聊天状态
+// 支持分页加载历史消息（limit 20 + 时间游标分页）
 // ============================================================
 
 final aiAvatarChatProvider =
-    StateNotifierProvider<AiAvatarChatNotifier, List<ChatMessage>>(
+    StateNotifierProvider<AiAvatarChatNotifier, AiAvatarChatState>(
   (ref) => AiAvatarChatNotifier(ref),
 );
 
-class AiAvatarChatNotifier extends StateNotifier<List<ChatMessage>> {
+class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
   final Ref _ref;
 
-  AiAvatarChatNotifier(this._ref) : super([]);
+  /// 每页加载条数
+  static const _pageSize = 20;
+
+  /// 是否还有更早的历史消息
+  bool _hasMoreHistory = true;
+
+  /// 是否正在加载中（防重复）
+  bool _isLoadingHistory = false;
+
+  bool get hasMoreHistory => _hasMoreHistory;
+
+  AiAvatarChatNotifier(this._ref) : super(const AiAvatarChatState());
 
   /// 内容审核过滤回复的固定模板（与 Edge Function 一致）
   static const _filteredReplyTemplate = '分身暂时无法回复，请稍后尝试。';
@@ -309,13 +322,18 @@ class AiAvatarChatNotifier extends StateNotifier<List<ChatMessage>> {
     if (avatar == null) return;
 
     // 添加用户消息
-    state = [
-      ...state,
-      ChatMessage(content: message, isUser: true, timestamp: DateTime.now()),
-    ];
+    final userMsg = ChatMessage(
+      content: message,
+      isUser: true,
+      timestamp: DateTime.now(),
+    );
+    state = state.copyWith(
+      messages: [...state.messages, userMsg],
+      isTyping: true,
+    );
 
     // 构造对话历史（发送给 Edge Function）
-    final history = state
+    final history = state.messages
         .map((m) => <String, String>{
               'role': m.isUser ? 'user' : 'assistant',
               'content': m.content,
@@ -334,42 +352,104 @@ class AiAvatarChatNotifier extends StateNotifier<List<ChatMessage>> {
       final isFiltered = reply == _filteredReplyTemplate;
 
       // 添加 AI 回复
-      state = [
-        ...state,
-        ChatMessage(
-          content: reply,
-          isUser: false,
-          timestamp: DateTime.now(),
-          isContentFiltered: isFiltered,
-        ),
-      ];
+      state = state.copyWith(
+        messages: [
+          ...state.messages,
+          ChatMessage(
+            content: reply,
+            isUser: false,
+            timestamp: DateTime.now(),
+            isContentFiltered: isFiltered,
+          ),
+        ],
+        isTyping: false,
+      );
     } catch (e) {
       // 网络失败时显示错误提示消息
-      state = [
-        ...state,
-        ChatMessage(
-          content: '抱歉，我暂时无法回复，请稍后再试。',
-          isUser: false,
-          timestamp: DateTime.now(),
-        ),
-      ];
+      state = state.copyWith(
+        messages: [
+          ...state.messages,
+          ChatMessage(
+            content: '抱歉，我暂时无法回复，请稍后再试。',
+            isUser: false,
+            timestamp: DateTime.now(),
+          ),
+        ],
+        isTyping: false,
+      );
     }
   }
 
   /// 添加收到的自动回复消息（由 Realtime 订阅推送）
   void addAutoReplyMessage(ChatMessage message) {
-    state = [...state, message];
+    state = state.copyWith(messages: [...state.messages, message]);
   }
 
-  /// 加载历史消息（从本地缓存或远端加载，预留接口）
-  Future<void> loadHistory({int limit = 20}) async {
-    // 预留：从 Supabase 加载历史聊天记录
-    // 目前 MVP 聊天记录仅保存在内存中
+  /// 【性能优化】分页加载历史消息
+  /// 使用时间游标分页（取当前最早消息的 timestamp 作为游标）
+  /// 每次加载 20 条，不足 20 条说明到顶
+  Future<void> loadHistory({int limit = _pageSize}) async {
+    if (_isLoadingHistory || !_hasMoreHistory) return;
+    _isLoadingHistory = true;
+
+    // 更新 UI 状态：显示顶部 loading
+    state = state.copyWith(isLoadingHistory: true);
+
+    try {
+      final avatar = _ref.read(currentAiAvatarProvider).valueOrNull;
+      if (avatar == null) {
+        _isLoadingHistory = false;
+        state = state.copyWith(isLoadingHistory: false);
+        return;
+      }
+
+      // 时间游标：当前最早消息的时间戳（无消息则不传）
+      final DateTime? cursor = state.messages.isNotEmpty
+          ? state.messages.first.timestamp
+          : null;
+
+      final repo = _ref.read(aiAvatarRepositoryProvider);
+      final rows = await repo.getChatHistory(
+        avatarId: avatar.id,
+        limit: limit,
+        beforeTimestamp: cursor,
+      );
+
+      if (rows.length < limit) {
+        _hasMoreHistory = false;
+      }
+
+      if (rows.isNotEmpty) {
+        final currentUserId =
+            _ref.read(currentAiAvatarProvider).valueOrNull?.userId ?? '';
+
+        // 将 DB 行转换为 ChatMessage，按时间正序排列（prepend 到列表头部）
+        final historyMessages = rows
+            .map((row) =>
+                ChatMessage.fromSupabaseMessage(row, currentUserId: currentUserId))
+            .toList()
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+        state = state.copyWith(
+          messages: [...historyMessages, ...state.messages],
+          isLoadingHistory: false,
+        );
+      } else {
+        state = state.copyWith(isLoadingHistory: false);
+      }
+    } catch (_) {
+      // 加载失败静默处理
+      state = state.copyWith(isLoadingHistory: false);
+    } finally {
+      _isLoadingHistory = false;
+    }
   }
 
   /// 清空聊天记录
   void clearChat() {
-    state = [];
+    _hasMoreHistory = true;
+    _isLoadingHistory = false;
+    state = const AiAvatarChatState();
   }
 }
 

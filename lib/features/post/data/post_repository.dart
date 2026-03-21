@@ -18,20 +18,13 @@ class PostRepository {
   // 查询
   // -------------------------------------------------------
 
-  /// 查询动态列表（附近，按城市 + 时间倒序）
-  Future<List<PostModel>> listByCity({
-    String? city,
+  /// 查询动态列表（按时间倒序）
+  Future<List<PostModel>> listPosts({
     int page = 0,
     int pageSize = 20,
   }) async {
-    var query = SupabaseClientHelper.from(SupabaseConstants.posts)
-        .select('*, profiles(nickname, avatar_url)');
-
-    if (city != null) {
-      query = query.eq('city', city);
-    }
-
-    final data = await query
+    final data = await SupabaseClientHelper.from(SupabaseConstants.posts)
+        .select('*, profiles(nickname, avatar_url)')
         .isFilter('deleted_at', null)
         .order('created_at', ascending: false)
         .range(page * pageSize, (page + 1) * pageSize - 1);
@@ -47,7 +40,7 @@ class PostRepository {
     final data = await SupabaseClientHelper.from(SupabaseConstants.posts)
         .select('*, profiles(nickname, avatar_url)')
         .isFilter('deleted_at', null)
-        .order('like_count', ascending: false)
+        .order('likes_count', ascending: false)
         .order('created_at', ascending: false)
         .range(page * pageSize, (page + 1) * pageSize - 1);
 
@@ -127,11 +120,8 @@ class PostRepository {
   /// 发布动态
   Future<PostModel> create({
     required String content,
-    List<String> photos = const [],
-    String? workoutLogId,
-    String? gymId,
-    String? challengeId,
-    String? city,
+    List<String> imageUrls = const [],
+    String? workoutId,
   }) async {
     final userId = SupabaseClientHelper.currentUserId!;
     final id = _uuid.v4();
@@ -141,11 +131,8 @@ class PostRepository {
       'id': id,
       'user_id': userId,
       'content': content,
-      'photos': photos,
-      'workout_log_id': workoutLogId,
-      'gym_id': gymId,
-      'challenge_id': challengeId,
-      'city': city,
+      'image_urls': imageUrls,
+      'workout_id': workoutId,
     };
 
     await SupabaseClientHelper.from(SupabaseConstants.posts).insert(data);
@@ -154,11 +141,8 @@ class PostRepository {
       id: id,
       userId: userId,
       content: content,
-      photos: photos,
-      workoutLogId: workoutLogId,
-      gymId: gymId,
-      challengeId: challengeId,
-      city: city,
+      imageUrls: imageUrls,
+      workoutId: workoutId,
       createdAt: now,
       updatedAt: now,
     );

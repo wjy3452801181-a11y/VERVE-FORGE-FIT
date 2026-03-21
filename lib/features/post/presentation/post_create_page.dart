@@ -23,7 +23,6 @@ class PostCreatePage extends ConsumerStatefulWidget {
 class _PostCreatePageState extends ConsumerState<PostCreatePage> {
   final _contentController = TextEditingController();
   final List<File> _pendingPhotos = [];
-  String? _selectedCity;
   bool _isSubmitting = false;
 
   @override
@@ -99,55 +98,9 @@ class _PostCreatePageState extends ConsumerState<PostCreatePage> {
             ),
 
             const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 12),
-
-            // 城市选择
-            _buildCitySelector(context),
           ],
         ),
       ),
-    );
-  }
-
-  /// 城市选择
-  Widget _buildCitySelector(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          Icons.location_on_outlined,
-          size: 20,
-          color: context.theme.colorScheme.onSurface.withValues(alpha: 0.5),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          context.l10n.postCity,
-          style: AppTextStyles.body,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Wrap(
-            spacing: 8,
-            children: AppConstants.supportedCities.map((city) {
-              final isSelected = _selectedCity == city;
-              return ChoiceChip(
-                label: Text(city),
-                selected: isSelected,
-                selectedColor: AppColors.primary.withValues(alpha: 0.2),
-                labelStyle: TextStyle(
-                  fontSize: 13,
-                  color: isSelected ? AppColors.primary : null,
-                ),
-                onSelected: (selected) {
-                  setState(() {
-                    _selectedCity = selected ? city : null;
-                  });
-                },
-              );
-            }).toList(),
-          ),
-        ),
-      ],
     );
   }
 
@@ -180,8 +133,7 @@ class _PostCreatePageState extends ConsumerState<PostCreatePage> {
       // 发布动态
       await action.publish(
         content: _contentController.text.trim(),
-        photos: photoUrls,
-        city: _selectedCity,
+        imageUrls: photoUrls,
       );
 
       if (mounted) {

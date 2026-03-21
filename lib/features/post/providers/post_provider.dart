@@ -9,11 +9,8 @@ import '../domain/post_comment_model.dart';
 // Feed Tab 状态
 // -------------------------------------------------------
 
-/// Feed 当前 Tab 索引（0=关注, 1=附近, 2=推荐）
+/// Feed 当前 Tab 索引（0=关注, 1=最新, 2=推荐）
 final feedTabProvider = StateProvider<int>((ref) => 1);
-
-/// Feed 城市筛选（附近 Tab 使用）
-final feedCityProvider = StateProvider<String?>((ref) => null);
 
 /// 是否有新动态（Realtime 推送标记）
 final feedHasNewPostsProvider = StateProvider<bool>((ref) => false);
@@ -52,13 +49,20 @@ final feedFollowingProvider =
 class FeedFollowingNotifier extends AsyncNotifier<List<PostModel>> {
   int _page = 0;
   bool _hasMore = true;
+  /// 【性能优化】是否正在加载更多（防止重复触发）
+  bool _isLoadingMore = false;
 
   bool get hasMore => _hasMore;
 
   @override
   Future<List<PostModel>> build() async {
+    // 【性能优化】keepAlive 防止 Tab 切换时丢弃已加载数据
+    // 用户切回该 Tab 时直接展示缓存，无需重新请求
+    ref.keepAlive();
+
     _page = 0;
     _hasMore = true;
+    _isLoadingMore = false;
     return _fetch();
   }
 
@@ -71,26 +75,32 @@ class FeedFollowingNotifier extends AsyncNotifier<List<PostModel>> {
     return data;
   }
 
-  /// 加载更多
+  /// 加载更多（带防重复锁）
   Future<void> loadMore() async {
-    if (!_hasMore) return;
-    _page++;
-    final current = state.valueOrNull ?? [];
-    final more = await _fetch();
-    state = AsyncValue.data([...current, ...more]);
+    if (!_hasMore || _isLoadingMore) return;
+    _isLoadingMore = true;
+    try {
+      _page++;
+      final current = state.valueOrNull ?? [];
+      final more = await _fetch();
+      state = AsyncValue.data([...current, ...more]);
+    } finally {
+      _isLoadingMore = false;
+    }
   }
 
   /// 手动刷新（清除 hasNewPosts 标记）
   Future<void> refresh() async {
     _page = 0;
     _hasMore = true;
+    _isLoadingMore = false;
     state = const AsyncValue.loading();
     state = AsyncValue.data(await _fetch());
   }
 }
 
 // -------------------------------------------------------
-// 附近 Tab — 按城市筛选的动态
+// 最新 Tab — 按时间倒序的动态
 // -------------------------------------------------------
 
 final feedNearbyProvider =
@@ -101,43 +111,51 @@ final feedNearbyProvider =
 class FeedNearbyNotifier extends AsyncNotifier<List<PostModel>> {
   int _page = 0;
   bool _hasMore = true;
+  bool _isLoadingMore = false;
 
   bool get hasMore => _hasMore;
 
   @override
   Future<List<PostModel>> build() async {
-    final city = ref.watch(feedCityProvider);
+    // 【性能优化】keepAlive 缓存已加载数据
+    ref.keepAlive();
+
     _page = 0;
     _hasMore = true;
-    return _fetch(city);
+    _isLoadingMore = false;
+    return _fetch();
   }
 
-  Future<List<PostModel>> _fetch(String? city) async {
+  Future<List<PostModel>> _fetch() async {
     final repo = ref.read(postRepositoryProvider);
-    final data = await repo.listByCity(city: city, page: _page);
+    final data = await repo.listPosts(page: _page);
     if (data.length < AppConstants.defaultPageSize) {
       _hasMore = false;
     }
     return data;
   }
 
-  /// 加载更多
+  /// 加载更多（带防重复锁）
   Future<void> loadMore() async {
-    if (!_hasMore) return;
-    _page++;
-    final city = ref.read(feedCityProvider);
-    final current = state.valueOrNull ?? [];
-    final more = await _fetch(city);
-    state = AsyncValue.data([...current, ...more]);
+    if (!_hasMore || _isLoadingMore) return;
+    _isLoadingMore = true;
+    try {
+      _page++;
+      final current = state.valueOrNull ?? [];
+      final more = await _fetch();
+      state = AsyncValue.data([...current, ...more]);
+    } finally {
+      _isLoadingMore = false;
+    }
   }
 
   /// 手动刷新
   Future<void> refresh() async {
-    final city = ref.read(feedCityProvider);
     _page = 0;
     _hasMore = true;
+    _isLoadingMore = false;
     state = const AsyncValue.loading();
-    state = AsyncValue.data(await _fetch(city));
+    state = AsyncValue.data(await _fetch());
   }
 }
 
@@ -153,13 +171,18 @@ final feedRecommendProvider =
 class FeedRecommendNotifier extends AsyncNotifier<List<PostModel>> {
   int _page = 0;
   bool _hasMore = true;
+  bool _isLoadingMore = false;
 
   bool get hasMore => _hasMore;
 
   @override
   Future<List<PostModel>> build() async {
+    // 【性能优化】keepAlive 缓存已加载数据
+    ref.keepAlive();
+
     _page = 0;
     _hasMore = true;
+    _isLoadingMore = false;
     return _fetch();
   }
 
@@ -172,19 +195,25 @@ class FeedRecommendNotifier extends AsyncNotifier<List<PostModel>> {
     return data;
   }
 
-  /// 加载更多
+  /// 加载更多（带防重复锁）
   Future<void> loadMore() async {
-    if (!_hasMore) return;
-    _page++;
-    final current = state.valueOrNull ?? [];
-    final more = await _fetch();
-    state = AsyncValue.data([...current, ...more]);
+    if (!_hasMore || _isLoadingMore) return;
+    _isLoadingMore = true;
+    try {
+      _page++;
+      final current = state.valueOrNull ?? [];
+      final more = await _fetch();
+      state = AsyncValue.data([...current, ...more]);
+    } finally {
+      _isLoadingMore = false;
+    }
   }
 
   /// 手动刷新
   Future<void> refresh() async {
     _page = 0;
     _hasMore = true;
+    _isLoadingMore = false;
     state = const AsyncValue.loading();
     state = AsyncValue.data(await _fetch());
   }
@@ -267,20 +296,14 @@ class PostAction {
   /// 发布动态
   Future<PostModel> publish({
     required String content,
-    List<String> photos = const [],
-    String? workoutLogId,
-    String? gymId,
-    String? challengeId,
-    String? city,
+    List<String> imageUrls = const [],
+    String? workoutId,
   }) async {
     final repo = _ref.read(postRepositoryProvider);
     final post = await repo.create(
       content: content,
-      photos: photos,
-      workoutLogId: workoutLogId,
-      gymId: gymId,
-      challengeId: challengeId,
-      city: city,
+      imageUrls: imageUrls,
+      workoutId: workoutId,
     );
     _ref.invalidate(feedNearbyProvider);
     _ref.invalidate(feedFollowingProvider);

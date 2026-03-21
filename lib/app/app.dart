@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -25,6 +26,10 @@ class VerveForgeApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'VerveForge',
       debugShowCheckedModeBanner: false,
+
+      // 【性能优化 Step 3】profile/debug 模式下显示性能覆盖层
+      // 实时查看 UI 线程 / Raster 线程耗时，release 模式自动关闭
+      showPerformanceOverlay: kProfileMode,
 
       // 主题配置 — 强制浅色模式（黑白 + Inter）
       theme: AppTheme.lightTheme,

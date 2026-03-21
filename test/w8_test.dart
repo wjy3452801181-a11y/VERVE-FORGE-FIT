@@ -10,13 +10,11 @@ Map<String, dynamic> basePostJson({
   String id = 'p1',
   String userId = 'u1',
   String content = '今天练了 HYROX 模拟赛，感觉很好！',
-  List<String> photos = const ['https://example.com/photo1.jpg'],
-  String? workoutLogId,
-  String? gymId,
-  String? challengeId,
-  String? city = 'shanghai',
-  int likeCount = 5,
-  int commentCount = 2,
+  List<String> imageUrls = const ['https://example.com/photo1.jpg'],
+  String? workoutId,
+  bool isPublic = true,
+  int likesCount = 5,
+  int commentsCount = 2,
   DateTime? createdAt,
   DateTime? updatedAt,
   DateTime? deletedAt,
@@ -28,13 +26,11 @@ Map<String, dynamic> basePostJson({
     'id': id,
     'user_id': userId,
     'content': content,
-    'photos': photos,
-    'workout_log_id': workoutLogId,
-    'gym_id': gymId,
-    'challenge_id': challengeId,
-    'city': city,
-    'like_count': likeCount,
-    'comment_count': commentCount,
+    'image_urls': imageUrls,
+    'workout_id': workoutId,
+    'is_public': isPublic,
+    'likes_count': likesCount,
+    'comments_count': commentsCount,
     'created_at': (createdAt ?? now).toIso8601String(),
     'updated_at': (updatedAt ?? now).toIso8601String(),
     'deleted_at': deletedAt?.toIso8601String(),
@@ -89,10 +85,9 @@ void main() {
       expect(p.id, 'p1');
       expect(p.userId, 'u1');
       expect(p.content, '今天练了 HYROX 模拟赛，感觉很好！');
-      expect(p.photos, ['https://example.com/photo1.jpg']);
-      expect(p.city, 'shanghai');
-      expect(p.likeCount, 5);
-      expect(p.commentCount, 2);
+      expect(p.imageUrls, ['https://example.com/photo1.jpg']);
+      expect(p.likesCount, 5);
+      expect(p.commentsCount, 2);
       expect(p.createdAt, isA<DateTime>());
       expect(p.updatedAt, isA<DateTime>());
     });
@@ -101,23 +96,17 @@ void main() {
       final json = basePostJson();
       final p = PostModel.fromJson(json);
 
-      expect(p.workoutLogId, isNull);
-      expect(p.gymId, isNull);
-      expect(p.challengeId, isNull);
+      expect(p.workoutId, isNull);
       expect(p.deletedAt, isNull);
     });
 
     test('可选关联字段正确解析', () {
       final json = basePostJson(
-        workoutLogId: 'wl1',
-        gymId: 'g1',
-        challengeId: 'ch1',
+        workoutId: 'wl1',
       );
       final p = PostModel.fromJson(json);
 
-      expect(p.workoutLogId, 'wl1');
-      expect(p.gymId, 'g1');
-      expect(p.challengeId, 'ch1');
+      expect(p.workoutId, 'wl1');
     });
 
     test('profiles JOIN 正确填充作者信息', () {
@@ -139,12 +128,12 @@ void main() {
       expect(p.authorAvatar, isNull);
     });
 
-    test('photos 为 null 时默认空列表', () {
+    test('image_urls 为 null 时默认空列表', () {
       final json = basePostJson();
-      json['photos'] = null;
+      json['image_urls'] = null;
       final p = PostModel.fromJson(json);
 
-      expect(p.photos, isEmpty);
+      expect(p.imageUrls, isEmpty);
     });
 
     test('content 为 null 时默认空字符串', () {
@@ -155,14 +144,14 @@ void main() {
       expect(p.content, '');
     });
 
-    test('like_count / comment_count 为 null 时默认 0', () {
+    test('likes_count / comments_count 为 null 时默认 0', () {
       final json = basePostJson();
-      json['like_count'] = null;
-      json['comment_count'] = null;
+      json['likes_count'] = null;
+      json['comments_count'] = null;
       final p = PostModel.fromJson(json);
 
-      expect(p.likeCount, 0);
-      expect(p.commentCount, 0);
+      expect(p.likesCount, 0);
+      expect(p.commentsCount, 0);
     });
 
     test('isLiked 字段正确解析', () {
@@ -198,12 +187,11 @@ void main() {
 
       expect(json['user_id'], 'u1');
       expect(json['content'], '今天练了 HYROX 模拟赛，感觉很好！');
-      expect(json['photos'], ['https://example.com/photo1.jpg']);
-      expect(json['city'], 'shanghai');
+      expect(json['image_urls'], ['https://example.com/photo1.jpg']);
       // 不应包含只读字段
       expect(json.containsKey('id'), false);
       expect(json.containsKey('created_at'), false);
-      expect(json.containsKey('like_count'), false);
+      expect(json.containsKey('likes_count'), false);
       expect(json.containsKey('profiles'), false);
       expect(json.containsKey('is_liked'), false);
     });
@@ -218,25 +206,24 @@ void main() {
       final p = PostModel.fromJson(basePostJson());
       final updated = p.copyWith(
         content: '修改后的内容',
-        likeCount: 10,
+        likesCount: 10,
         isLiked: true,
       );
 
       expect(updated.content, '修改后的内容');
-      expect(updated.likeCount, 10);
+      expect(updated.likesCount, 10);
       expect(updated.isLiked, true);
       // 未修改的字段保持不变
       expect(updated.id, p.id);
       expect(updated.userId, p.userId);
-      expect(updated.photos, p.photos);
-      expect(updated.city, p.city);
+      expect(updated.imageUrls, p.imageUrls);
     });
 
-    test('copyWith photos', () {
+    test('copyWith imageUrls', () {
       final p = PostModel.fromJson(basePostJson());
-      final updated = p.copyWith(photos: ['a.jpg', 'b.jpg']);
+      final updated = p.copyWith(imageUrls: ['a.jpg', 'b.jpg']);
 
-      expect(updated.photos, ['a.jpg', 'b.jpg']);
+      expect(updated.imageUrls, ['a.jpg', 'b.jpg']);
       expect(updated.content, p.content);
     });
   });
@@ -251,26 +238,20 @@ void main() {
       expect(with_.hasPhotos, true);
 
       final json = basePostJson();
-      json['photos'] = <String>[];
+      json['image_urls'] = <String>[];
       final without = PostModel.fromJson(json);
       expect(without.hasPhotos, false);
     });
 
-    test('hasWorkoutLog / hasGym / hasChallenge', () {
+    test('hasWorkoutLog', () {
       final p = PostModel.fromJson(basePostJson(
-        workoutLogId: 'wl1',
-        gymId: 'g1',
-        challengeId: 'ch1',
+        workoutId: 'wl1',
       ));
 
       expect(p.hasWorkoutLog, true);
-      expect(p.hasGym, true);
-      expect(p.hasChallenge, true);
 
       final empty = PostModel.fromJson(basePostJson());
       expect(empty.hasWorkoutLog, false);
-      expect(empty.hasGym, false);
-      expect(empty.hasChallenge, false);
     });
 
     test('timeAgo — 刚刚', () {
@@ -391,16 +372,14 @@ void main() {
     test('PostModel fromJson → toJson 关键字段一致', () {
       final original = PostModel.fromJson(basePostJson(
         content: '测试内容',
-        city: 'beijing',
-        workoutLogId: 'wl99',
+        workoutId: 'wl99',
       ));
       final json = original.toJson();
 
       expect(json['user_id'], original.userId);
       expect(json['content'], original.content);
-      expect(json['city'], original.city);
-      expect(json['workout_log_id'], original.workoutLogId);
-      expect(json['photos'], original.photos);
+      expect(json['workout_id'], original.workoutId);
+      expect(json['image_urls'], original.imageUrls);
     });
 
     test('PostCommentModel fromJson → toJson 关键字段一致', () {

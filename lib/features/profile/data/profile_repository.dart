@@ -64,15 +64,15 @@ class ProfileRepository {
       };
 
       final data = await SupabaseClientHelper.from(SupabaseConstants.profiles)
-          .insert(profileData)
+          .upsert(profileData)
           .select()
           .single();
 
       _log.i('档案创建成功: $userId');
       return ProfileModel.fromJson(data);
-    } catch (e) {
-      _log.e('创建档案失败', error: e);
-      throw const AppException(message: '创建档案失败，请重试');
+    } catch (e, stack) {
+      _log.e('创建档案失败: $e', error: e, stackTrace: stack);
+      throw AppException(message: '创建档案失败: $e');
     }
   }
 

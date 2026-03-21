@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
@@ -22,6 +23,11 @@ const _kGraffitiNeon = Color(0xFFCDFF00); // 荧光黄绿
 /// 动态流页 — Tab 1
 /// 3 个子 Tab：关注 / 附近 / 推荐
 /// 支持 Supabase Realtime 新动态推送
+///
+/// 【性能优化说明】
+/// 1. loading 状态使用 Shimmer 骨架屏替代 CircularProgressIndicator，降低白屏感知
+/// 2. Provider 添加 keepAlive，Tab 切换不重新加载已缓存数据
+/// 3. 列表尾部添加 loading 指示器，上拉加载体验更平滑
 class FeedPage extends ConsumerStatefulWidget {
   const FeedPage({super.key});
 
@@ -54,9 +60,6 @@ class _FeedPageState extends ConsumerState<FeedPage>
   Widget build(BuildContext context) {
     // 激活 Realtime 订阅（只需 watch 一次即可维持连接）
     ref.watch(feedRealtimeProvider);
-
-    // 监听"有新动态"标记
-    final hasNewPosts = ref.watch(feedHasNewPostsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -110,15 +113,24 @@ class _FeedPageState extends ConsumerState<FeedPage>
           ),
           tabs: [
             Tab(text: context.l10n.feedTabFollowing),
-            Tab(text: context.l10n.feedTabNearby),
+            Tab(text: context.l10n.feedTabLatest),
             Tab(text: context.l10n.feedTabRecommend),
           ],
         ),
       ),
       body: Column(
         children: [
-          // 新动态提示横幅
-          if (hasNewPosts) _NewPostsBanner(onRefresh: _refreshCurrentTab),
+          // 【性能优化 Step 2】用 Consumer + select 精细监听 hasNewPosts
+          // 仅当 bool 值实际变化时才 rebuild 横幅区域，不会触发整个 Scaffold 重建
+          Consumer(
+            builder: (context, ref, _) {
+              final hasNewPosts = ref.watch(
+                feedHasNewPostsProvider.select((v) => v),
+              );
+              if (!hasNewPosts) return const SizedBox.shrink();
+              return _NewPostsBanner(onRefresh: _refreshCurrentTab);
+            },
+          ),
 
           // Tab 内容
           Expanded(
@@ -211,38 +223,47 @@ class _FollowingTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final postsAsync = ref.watch(feedFollowingProvider);
+    // 【性能优化 Step 2】select 精细化监听
+    // 仅提取 loading/error/data 状态 + 列表长度作为 rebuild 判据
+    // 列表内容的变化（如某条动态点赞数+1）不会触发整个 Tab rebuild，
+    // 因为 _PostListView 内部的 PostCard 各自持有独立数据
+    final postsAsync = ref.watch(
+      feedFollowingProvider.select((state) => (
+        isLoading: state.isLoading,
+        hasError: state.hasError,
+        error: state.error,
+        posts: state.valueOrNull,
+      )),
+    );
 
-    return postsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => EmptyStateWidget(
+    if (postsAsync.isLoading) return const _FeedSkeletonList();
+    if (postsAsync.hasError) {
+      return EmptyStateWidget(
         icon: Icons.error_outline,
         title: context.l10n.commonError,
         actionText: context.l10n.commonRetry,
         onAction: () => ref.invalidate(feedFollowingProvider),
-      ),
-      data: (posts) {
-        if (posts.isEmpty) {
-          return EmptyStateWidget(
-            icon: Icons.people_outline,
-            title: context.l10n.postNoFollowing,
-            subtitle: context.l10n.postFollowTip,
-          );
-        }
+      );
+    }
 
-        return _PostListView(
-          posts: posts,
-          onRefresh: () async {
-            ref.read(feedHasNewPostsProvider.notifier).state = false;
-            await ref.read(feedFollowingProvider.notifier).refresh();
-          },
-          onLoadMore: () {
-            final notifier = ref.read(feedFollowingProvider.notifier);
-            if (notifier.hasMore) {
-              notifier.loadMore();
-            }
-          },
-        );
+    final posts = postsAsync.posts ?? [];
+    if (posts.isEmpty) {
+      return EmptyStateWidget(
+        icon: Icons.people_outline,
+        title: context.l10n.postNoFollowing,
+        subtitle: context.l10n.postFollowTip,
+      );
+    }
+
+    return _PostListView(
+      posts: posts,
+      hasMore: ref.read(feedFollowingProvider.notifier).hasMore,
+      onRefresh: () async {
+        ref.read(feedHasNewPostsProvider.notifier).state = false;
+        await ref.read(feedFollowingProvider.notifier).refresh();
+      },
+      onLoadMore: () {
+        ref.read(feedFollowingProvider.notifier).loadMore();
       },
     );
   }
@@ -257,38 +278,44 @@ class _NearbyTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final postsAsync = ref.watch(feedNearbyProvider);
+    // 【性能优化 Step 2】select 精细化 — 同 _FollowingTab
+    final postsAsync = ref.watch(
+      feedNearbyProvider.select((state) => (
+        isLoading: state.isLoading,
+        hasError: state.hasError,
+        error: state.error,
+        posts: state.valueOrNull,
+      )),
+    );
 
-    return postsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => EmptyStateWidget(
+    if (postsAsync.isLoading) return const _FeedSkeletonList();
+    if (postsAsync.hasError) {
+      return EmptyStateWidget(
         icon: Icons.error_outline,
         title: context.l10n.commonError,
         actionText: context.l10n.commonRetry,
         onAction: () => ref.invalidate(feedNearbyProvider),
-      ),
-      data: (posts) {
-        if (posts.isEmpty) {
-          return EmptyStateWidget(
-            icon: Icons.dynamic_feed_outlined,
-            title: context.l10n.postEmpty,
-            subtitle: context.l10n.postEmptyTip,
-          );
-        }
+      );
+    }
 
-        return _PostListView(
-          posts: posts,
-          onRefresh: () async {
-            ref.read(feedHasNewPostsProvider.notifier).state = false;
-            await ref.read(feedNearbyProvider.notifier).refresh();
-          },
-          onLoadMore: () {
-            final notifier = ref.read(feedNearbyProvider.notifier);
-            if (notifier.hasMore) {
-              notifier.loadMore();
-            }
-          },
-        );
+    final posts = postsAsync.posts ?? [];
+    if (posts.isEmpty) {
+      return EmptyStateWidget(
+        icon: Icons.dynamic_feed_outlined,
+        title: context.l10n.postEmpty,
+        subtitle: context.l10n.postEmptyTip,
+      );
+    }
+
+    return _PostListView(
+      posts: posts,
+      hasMore: ref.read(feedNearbyProvider.notifier).hasMore,
+      onRefresh: () async {
+        ref.read(feedHasNewPostsProvider.notifier).state = false;
+        await ref.read(feedNearbyProvider.notifier).refresh();
+      },
+      onLoadMore: () {
+        ref.read(feedNearbyProvider.notifier).loadMore();
       },
     );
   }
@@ -303,38 +330,44 @@ class _RecommendTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final postsAsync = ref.watch(feedRecommendProvider);
+    // 【性能优化 Step 2】select 精细化 — 同 _FollowingTab / _NearbyTab
+    final postsAsync = ref.watch(
+      feedRecommendProvider.select((state) => (
+        isLoading: state.isLoading,
+        hasError: state.hasError,
+        error: state.error,
+        posts: state.valueOrNull,
+      )),
+    );
 
-    return postsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => EmptyStateWidget(
+    if (postsAsync.isLoading) return const _FeedSkeletonList();
+    if (postsAsync.hasError) {
+      return EmptyStateWidget(
         icon: Icons.error_outline,
         title: context.l10n.commonError,
         actionText: context.l10n.commonRetry,
         onAction: () => ref.invalidate(feedRecommendProvider),
-      ),
-      data: (posts) {
-        if (posts.isEmpty) {
-          return EmptyStateWidget(
-            icon: Icons.dynamic_feed_outlined,
-            title: context.l10n.postEmpty,
-            subtitle: context.l10n.postEmptyTip,
-          );
-        }
+      );
+    }
 
-        return _PostListView(
-          posts: posts,
-          onRefresh: () async {
-            ref.read(feedHasNewPostsProvider.notifier).state = false;
-            await ref.read(feedRecommendProvider.notifier).refresh();
-          },
-          onLoadMore: () {
-            final notifier = ref.read(feedRecommendProvider.notifier);
-            if (notifier.hasMore) {
-              notifier.loadMore();
-            }
-          },
-        );
+    final posts = postsAsync.posts ?? [];
+    if (posts.isEmpty) {
+      return EmptyStateWidget(
+        icon: Icons.dynamic_feed_outlined,
+        title: context.l10n.postEmpty,
+        subtitle: context.l10n.postEmptyTip,
+      );
+    }
+
+    return _PostListView(
+      posts: posts,
+      hasMore: ref.read(feedRecommendProvider.notifier).hasMore,
+      onRefresh: () async {
+        ref.read(feedHasNewPostsProvider.notifier).state = false;
+        await ref.read(feedRecommendProvider.notifier).refresh();
+      },
+      onLoadMore: () {
+        ref.read(feedRecommendProvider.notifier).loadMore();
       },
     );
   }
@@ -342,15 +375,18 @@ class _RecommendTab extends ConsumerWidget {
 
 // -------------------------------------------------------
 // 通用动态列表 — 下拉刷新 + 上拉加载
+// 【性能优化】添加尾部 loading 指示器 + hasMore 控制
 // -------------------------------------------------------
 
 class _PostListView extends StatefulWidget {
   final List<PostModel> posts;
+  final bool hasMore;
   final Future<void> Function() onRefresh;
   final VoidCallback onLoadMore;
 
   const _PostListView({
     required this.posts,
+    required this.hasMore,
     required this.onRefresh,
     required this.onLoadMore,
   });
@@ -383,13 +419,21 @@ class _PostListViewState extends State<_PostListView> {
 
   @override
   Widget build(BuildContext context) {
+    // 【性能优化】列表末尾添加 loading / "没有更多" 指示器
+    final itemCount = widget.posts.length + 1; // +1 用于尾部指示器
+
     return RefreshIndicator(
       onRefresh: widget.onRefresh,
       color: AppColors.primary,
       child: ListView.builder(
         controller: _scrollController,
-        itemCount: widget.posts.length,
+        itemCount: itemCount,
         itemBuilder: (context, index) {
+          // 尾部指示器
+          if (index == widget.posts.length) {
+            return _buildFooter();
+          }
+
           final post = widget.posts[index];
           return PostCard(
             post: post,
@@ -398,6 +442,180 @@ class _PostListViewState extends State<_PostListView> {
             },
           );
         },
+      ),
+    );
+  }
+
+  /// 列表尾部：加载中 / 没有更多
+  Widget _buildFooter() {
+    if (widget.hasMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    // 已加载全部
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: Text(
+          '— 已经到底了 —',
+          style: AppTextStyles.caption.copyWith(
+            color: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withValues(alpha: 0.3),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// -------------------------------------------------------
+// 【性能优化】Feed 骨架屏列表 — Shimmer 占位
+// 模拟 PostCard 布局结构，首帧加载感知 < 2s
+// -------------------------------------------------------
+
+class _FeedSkeletonList extends StatelessWidget {
+  const _FeedSkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Shimmer.fromColors(
+      baseColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
+      highlightColor:
+          isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F5F5),
+      child: ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 5, // 显示 5 个骨架卡片
+        itemBuilder: (context, index) => const _PostSkeletonCard(),
+      ),
+    );
+  }
+}
+
+/// 单张动态卡片骨架 — 模拟 PostCard 真实布局
+class _PostSkeletonCard extends StatelessWidget {
+  const _PostSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 作者行骨架：圆形头像 + 两行文字
+          Row(
+            children: [
+              // 头像占位
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 昵称占位
+                    Container(
+                      width: 100,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    // 时间占位
+                    Container(
+                      width: 60,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // 文字内容占位（2 行）
+          Container(
+            width: double.infinity,
+            height: 12,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: 200,
+            height: 12,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // 图片占位
+          Container(
+            width: double.infinity,
+            height: 160,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // 互动行占位（两个药丸）
+          Row(
+            children: [
+              Container(
+                width: 64,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                width: 64,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

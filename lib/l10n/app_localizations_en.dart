@@ -164,6 +164,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedTabNearby => 'Nearby';
 
   @override
+  String get feedTabLatest => 'Latest';
+
+  @override
   String get feedTabRecommend => 'For You';
 
   @override

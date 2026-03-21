@@ -246,6 +246,45 @@ class AiAvatarRepository {
     }
   }
 
+  // -------------------------------------------------------
+  // 【性能优化】聊天历史分页加载
+  // -------------------------------------------------------
+
+  /// 获取 AI 分身聊天历史（分页，按时间倒序）
+  ///
+  /// [avatarId] 分身 ID
+  /// [limit] 每页条数（默认 20）
+  /// [beforeTimestamp] 时间游标：仅返回早于此时间的消息（用于向上翻页）
+  Future<List<Map<String, dynamic>>> getChatHistory({
+    required String avatarId,
+    int limit = 20,
+    DateTime? beforeTimestamp,
+  }) async {
+    final userId = SupabaseClientHelper.currentUserId;
+    if (userId == null) return [];
+
+    try {
+      // 【注意】Supabase PostgREST 要求：filter 在 order/limit 之前调用
+      var query = SupabaseClientHelper.from(SupabaseConstants.messages)
+          .select()
+          .eq('conversation_id', avatarId);
+
+      // 时间游标分页：向上加载更早的消息
+      if (beforeTimestamp != null) {
+        query = query.lt('created_at', beforeTimestamp.toIso8601String());
+      }
+
+      final data = await query
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      return (data as List).cast<Map<String, dynamic>>();
+    } catch (e) {
+      _log.e('获取聊天历史失败', error: e);
+      return [];
+    }
+  }
+
   /// 通过 share_token 获取分身公开信息
   Future<Map<String, dynamic>?> getSharedAvatar(String shareToken) async {
     try {

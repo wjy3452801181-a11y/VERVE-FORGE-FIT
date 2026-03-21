@@ -3,13 +3,11 @@ class PostModel {
   final String id;
   final String userId;
   final String content;
-  final List<String> photos;
-  final String? workoutLogId;
-  final String? gymId;
-  final String? challengeId;
-  final String? city;
-  final int likeCount;
-  final int commentCount;
+  final List<String> imageUrls;
+  final String? workoutId;
+  final bool isPublic;
+  final int likesCount;
+  final int commentsCount;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -25,13 +23,11 @@ class PostModel {
     required this.id,
     required this.userId,
     this.content = '',
-    this.photos = const [],
-    this.workoutLogId,
-    this.gymId,
-    this.challengeId,
-    this.city,
-    this.likeCount = 0,
-    this.commentCount = 0,
+    this.imageUrls = const [],
+    this.workoutId,
+    this.isPublic = true,
+    this.likesCount = 0,
+    this.commentsCount = 0,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -48,16 +44,14 @@ class PostModel {
       id: json['id'] as String,
       userId: json['user_id'] as String,
       content: json['content'] as String? ?? '',
-      photos: (json['photos'] as List<dynamic>?)
+      imageUrls: (json['image_urls'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],
-      workoutLogId: json['workout_log_id'] as String?,
-      gymId: json['gym_id'] as String?,
-      challengeId: json['challenge_id'] as String?,
-      city: json['city'] as String?,
-      likeCount: json['like_count'] as int? ?? 0,
-      commentCount: json['comment_count'] as int? ?? 0,
+      workoutId: json['workout_id'] as String?,
+      isPublic: json['is_public'] as bool? ?? true,
+      likesCount: json['likes_count'] as int? ?? 0,
+      commentsCount: json['comments_count'] as int? ?? 0,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt: json['deleted_at'] != null
@@ -74,34 +68,28 @@ class PostModel {
     return {
       'user_id': userId,
       'content': content,
-      'photos': photos,
-      'workout_log_id': workoutLogId,
-      'gym_id': gymId,
-      'challenge_id': challengeId,
-      'city': city,
+      'image_urls': imageUrls,
+      'workout_id': workoutId,
     };
   }
 
   /// 复制修改
   PostModel copyWith({
     String? content,
-    List<String>? photos,
-    String? city,
-    int? likeCount,
-    int? commentCount,
+    List<String>? imageUrls,
+    int? likesCount,
+    int? commentsCount,
     bool? isLiked,
   }) {
     return PostModel(
       id: id,
       userId: userId,
       content: content ?? this.content,
-      photos: photos ?? this.photos,
-      workoutLogId: workoutLogId,
-      gymId: gymId,
-      challengeId: challengeId,
-      city: city ?? this.city,
-      likeCount: likeCount ?? this.likeCount,
-      commentCount: commentCount ?? this.commentCount,
+      imageUrls: imageUrls ?? this.imageUrls,
+      workoutId: workoutId,
+      isPublic: isPublic,
+      likesCount: likesCount ?? this.likesCount,
+      commentsCount: commentsCount ?? this.commentsCount,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
       authorNickname: authorNickname,
@@ -111,16 +99,10 @@ class PostModel {
   }
 
   /// 是否有照片
-  bool get hasPhotos => photos.isNotEmpty;
+  bool get hasPhotos => imageUrls.isNotEmpty;
 
   /// 是否关联了训练日志
-  bool get hasWorkoutLog => workoutLogId != null;
-
-  /// 是否关联了训练馆
-  bool get hasGym => gymId != null;
-
-  /// 是否关联了挑战赛
-  bool get hasChallenge => challengeId != null;
+  bool get hasWorkoutLog => workoutId != null;
 
   /// 发布时间显示（如 "3分钟前"、"2小时前"、"昨天"）
   String get timeAgo {

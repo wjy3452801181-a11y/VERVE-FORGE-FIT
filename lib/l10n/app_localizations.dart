@@ -406,6 +406,12 @@ abstract class AppLocalizations {
   /// **'附近'**
   String get feedTabNearby;
 
+  /// No description provided for @feedTabLatest.
+  ///
+  /// In zh_CN, this message translates to:
+  /// **'最新'**
+  String get feedTabLatest;
+
   /// No description provided for @feedTabRecommend.
   ///
   /// In zh_CN, this message translates to:

@@ -162,6 +162,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get feedTabNearby => '附近';
 
   @override
+  String get feedTabLatest => '最新';
+
+  @override
   String get feedTabRecommend => '推荐';
 
   @override
@@ -1545,6 +1548,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get feedTabNearby => '附近';
 
   @override
+  String get feedTabLatest => '最新';
+
+  @override
   String get feedTabRecommend => '推荐';
 
   @override
@@ -2926,6 +2932,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get feedTabNearby => '附近';
+
+  @override
+  String get feedTabLatest => '最新';
 
   @override
   String get feedTabRecommend => '推薦';

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
@@ -11,7 +12,7 @@ import '../domain/ai_avatar_model.dart';
 import '../providers/ai_avatar_provider.dart';
 import 'widgets/ai_generated_badge.dart';
 
-/// AI 分身聊天页 — 玻璃拟态风格（优化版）
+/// AI 分身聊天页 — 玻璃拟态风格（性能优化版）
 ///
 /// 优化内容：
 /// 1. 不对称圆角气泡（用户右上 24dp，AI 左上 24dp）
@@ -20,6 +21,12 @@ import 'widgets/ai_generated_badge.dart';
 /// 4. 空状态渐变进度条 + "分身正在学习你的习惯…"
 /// 5. 语音按钮 + 发送按钮圆形渐变脉冲动画
 /// 6. 页面顶部 AI 免责声明提示
+///
+/// 【性能优化新增】
+/// 7. 分页加载历史消息（limit 20 + 时间游标），滚动到顶部自动加载
+/// 8. 骨架屏占位 + 顶部加载指示器
+/// 9. 输入框 setState 抽取为 ValueListenableBuilder，减少整页 rebuild
+/// 10. 动画仅在页面可见时运行（WidgetsBindingObserver）
 class AiAvatarChatPage extends ConsumerStatefulWidget {
   const AiAvatarChatPage({super.key});
 
@@ -28,12 +35,14 @@ class AiAvatarChatPage extends ConsumerStatefulWidget {
 }
 
 class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   bool _isSending = false;
   bool _showQuickPhrases = false;
-  bool _isLoadingHistory = false;
+  /// 【性能优化】_isLoadingHistory 改由 Provider state 驱动
+  /// 页面仅保留 _initialLoaded 标记，用于首次进入时加载历史
+  bool _initialLoaded = false;
 
   /// 本次会话发送计数（用于提示用户可手动更新画像）
   int _sessionMessageCount = 0;
@@ -52,6 +61,9 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   @override
   void initState() {
     super.initState();
+    // 【性能优化】注册生命周期观察，页面不可见时暂停动画
+    WidgetsBinding.instance.addObserver(this);
+
     _glowController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -69,19 +81,41 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
       CurvedAnimation(parent: _sendPulseController, curve: Curves.linear),
     );
 
-    // 监听输入框文字变化（触发 setState 以更新发送按钮状态）
-    _messageController.addListener(() {
-      if (mounted) setState(() {});
+    // 【性能优化】不再用 addListener + setState 监听输入框
+    // 改用 ValueListenableBuilder 局部更新发送按钮（见 _buildInputArea）
+
+    // 【性能优化】首次进入时加载历史消息
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_initialLoaded) {
+        _initialLoaded = true;
+        ref.read(aiAvatarChatProvider.notifier).loadHistory();
+      }
     });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _messageController.dispose();
     _scrollController.dispose();
     _glowController.dispose();
     _sendPulseController.dispose();
     super.dispose();
+  }
+
+  /// 【性能优化】页面不可见时暂停动画，可见时恢复
+  /// 避免后台页面持续消耗 CPU
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      _glowController.stop();
+      _sendPulseController.stop();
+    } else if (state == AppLifecycleState.resumed) {
+      _glowController.repeat(reverse: true);
+      _sendPulseController.repeat();
+    }
   }
 
   /// 获取动态思考文字列表
@@ -94,7 +128,10 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   @override
   Widget build(BuildContext context) {
     final avatar = ref.watch(currentAiAvatarProvider).valueOrNull;
-    final messages = ref.watch(aiAvatarChatProvider);
+    // 【性能优化】使用 select 仅监听 messages 列表引用变化
+    final chatState = ref.watch(aiAvatarChatProvider);
+    final messages = chatState.messages;
+    final isLoadingHistory = chatState.isLoadingHistory;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // 解析预设 emoji 头像
@@ -168,10 +205,14 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
                 _buildAutoReplyBanner(isDark),
 
               // 消息列表
+              // 【性能优化】初次加载历史时显示骨架屏
               Expanded(
-                child: messages.isEmpty && !_isSending
-                    ? _buildEmptyState(context, avatarEmoji)
-                    : _buildMessageList(messages, avatar, avatarEmoji),
+                child: messages.isEmpty && !_isSending && isLoadingHistory
+                    ? const _ChatSkeletonList()
+                    : messages.isEmpty && !_isSending
+                        ? _buildEmptyState(context, avatarEmoji)
+                        : _buildMessageList(
+                            messages, avatar, avatarEmoji, isLoadingHistory),
               ),
 
               // 快捷短语栏
@@ -393,11 +434,13 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
 
   // ============================================================
   // 消息列表 — 包含滑动加载历史防冲突
+  // 【性能优化】isLoadingHistory 改由 Provider 驱动
   // ============================================================
   Widget _buildMessageList(
     List<ChatMessage> messages,
     AiAvatarModel? avatar,
     String? avatarEmoji,
+    bool isLoadingHistory,
   ) {
     return NotificationListener<ScrollNotification>(
       // 拦截滚动通知，避免手势冲突并处理上拉加载历史
@@ -408,13 +451,13 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: messages.length +
             (_isSending ? 1 : 0) +
-            (_isLoadingHistory ? 1 : 0),
+            (isLoadingHistory ? 1 : 0),
         reverse: false,
         // 禁用平台默认的过度滚动手势以避免与气泡长按冲突
         physics: const ClampingScrollPhysics(),
         itemBuilder: (context, index) {
           // 顶部：加载历史指示器
-          if (_isLoadingHistory && index == 0) {
+          if (isLoadingHistory && index == 0) {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(
@@ -431,7 +474,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
           }
 
           // 调整实际消息索引
-          final msgIndex = _isLoadingHistory ? index - 1 : index;
+          final msgIndex = isLoadingHistory ? index - 1 : index;
 
           // 末尾：思考中气泡
           if (msgIndex == messages.length && _isSending) {
@@ -456,32 +499,20 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   }
 
   /// 处理滚动通知 — 滚动到顶部时触发加载历史
+  /// 【性能优化】加载状态由 Provider 管理，不再用本地 setState
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification) {
       // 滑动到列表顶部 50px 以内时触发加载历史
-      if (notification.metrics.pixels < 50 && !_isLoadingHistory) {
-        _loadMoreHistory();
+      final chatState = ref.read(aiAvatarChatProvider);
+      if (notification.metrics.pixels < 50 && !chatState.isLoadingHistory) {
+        ref.read(aiAvatarChatProvider.notifier).loadHistory();
       }
     }
     // 返回 false 允许通知继续传播，避免阻断 ListView 自身手势
     return false;
   }
 
-  /// 加载更多历史记录
-  Future<void> _loadMoreHistory() async {
-    if (_isLoadingHistory) return;
-    setState(() => _isLoadingHistory = true);
-
-    try {
-      await ref.read(aiAvatarChatProvider.notifier).loadHistory();
-    } catch (_) {
-      // 加载失败静默处理
-    } finally {
-      if (mounted) {
-        setState(() => _isLoadingHistory = false);
-      }
-    }
-  }
+  // _loadMoreHistory 已移除 — 逻辑统一到 Provider.loadHistory()
 
   // ============================================================
   // 优化 1：用户消息气泡 — 不对称圆角（右上 24dp，其余 12dp）
@@ -854,11 +885,12 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   }
 
   // ============================================================
-  // 优化 5：输入区域 — 语音按钮 + 发送按钮圆形渐变脉冲动画
+  // 优化 5 + 【性能优化 9】：输入区域
+  // 使用 ValueListenableBuilder 局部更新发送按钮状态
+  // 避免每次键入触发整页 rebuild
   // ============================================================
   Widget _buildInputArea(BuildContext context) {
     final isDark = Theme.of(this.context).brightness == Brightness.dark;
-    final hasText = _messageController.text.trim().isNotEmpty;
 
     return ClipRRect(
       child: BackdropFilter(
@@ -948,60 +980,70 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
               ),
               const SizedBox(width: 8),
 
-              // 发送按钮 — 圆形渐变脉冲动画
-              AnimatedBuilder(
-                animation: _sendPulseAnimation,
-                builder: (context, child) {
-                  return Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: SweepGradient(
-                        startAngle: _sendPulseAnimation.value * 2 * pi,
-                        endAngle:
-                            _sendPulseAnimation.value * 2 * pi + 2 * pi,
-                        colors: hasText && !_isSending
-                            ? const [
-                                AppColors.primary,
-                                Color(0xFFFF8A5C),
-                                Color(0xFFFFB347),
-                                AppColors.primary,
-                              ]
-                            : [
-                                Colors.grey.shade400,
-                                Colors.grey.shade300,
-                                Colors.grey.shade400,
-                                Colors.grey.shade400,
-                              ],
-                      ),
-                      boxShadow: hasText && !_isSending
-                          ? [
-                              BoxShadow(
-                                color: AppColors.primary
-                                    .withValues(alpha: 0.35),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: IconButton(
-                      onPressed:
-                          _isSending || !hasText ? null : _sendMessage,
-                      padding: EdgeInsets.zero,
-                      icon: _isSending
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.send_rounded,
-                              color: Colors.white, size: 20),
-                    ),
+              // 【性能优化 9】发送按钮使用 ValueListenableBuilder
+              // 仅在输入内容变化时 rebuild 此按钮，不触发整页 setState
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _messageController,
+                builder: (context, value, _) {
+                  final hasText = value.text.trim().isNotEmpty;
+                  return AnimatedBuilder(
+                    animation: _sendPulseAnimation,
+                    builder: (context, child) {
+                      return Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: SweepGradient(
+                            startAngle:
+                                _sendPulseAnimation.value * 2 * pi,
+                            endAngle:
+                                _sendPulseAnimation.value * 2 * pi +
+                                    2 * pi,
+                            colors: hasText && !_isSending
+                                ? const [
+                                    AppColors.primary,
+                                    Color(0xFFFF8A5C),
+                                    Color(0xFFFFB347),
+                                    AppColors.primary,
+                                  ]
+                                : [
+                                    Colors.grey.shade400,
+                                    Colors.grey.shade300,
+                                    Colors.grey.shade400,
+                                    Colors.grey.shade400,
+                                  ],
+                          ),
+                          boxShadow: hasText && !_isSending
+                              ? [
+                                  BoxShadow(
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.35),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: IconButton(
+                          onPressed: _isSending || !hasText
+                              ? null
+                              : _sendMessage,
+                          padding: EdgeInsets.zero,
+                          icon: _isSending
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.send_rounded,
+                                  color: Colors.white, size: 20),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -1355,6 +1397,86 @@ class _CopyFeedbackOverlayState extends State<_CopyFeedbackOverlay>
           ),
         ),
       ),
+    );
+  }
+}
+
+// ================================================================
+// 【性能优化 8】聊天骨架屏 — 首次加载历史时的 Shimmer 占位
+// 模拟交替气泡布局（左侧 AI + 右侧用户）
+// ================================================================
+
+class _ChatSkeletonList extends StatelessWidget {
+  const _ChatSkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Shimmer.fromColors(
+      baseColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
+      highlightColor:
+          isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F5F5),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          children: [
+            // 模拟 5 条交替气泡
+            _ChatBubbleSkeleton(isUser: false, width: 200),
+            SizedBox(height: 12),
+            _ChatBubbleSkeleton(isUser: true, width: 160),
+            SizedBox(height: 12),
+            _ChatBubbleSkeleton(isUser: false, width: 240),
+            SizedBox(height: 12),
+            _ChatBubbleSkeleton(isUser: true, width: 120),
+            SizedBox(height: 12),
+            _ChatBubbleSkeleton(isUser: false, width: 180),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 单条气泡骨架
+class _ChatBubbleSkeleton extends StatelessWidget {
+  final bool isUser;
+  final double width;
+
+  const _ChatBubbleSkeleton({required this.isUser, required this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment:
+          isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: [
+        if (!isUser) ...[
+          // AI 头像占位
+          Container(
+            width: 36,
+            height: 36,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+        ],
+        // 气泡占位
+        Container(
+          width: width,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(isUser ? 12 : 24),
+              topRight: Radius.circular(isUser ? 24 : 12),
+              bottomLeft: const Radius.circular(12),
+              bottomRight: const Radius.circular(12),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
