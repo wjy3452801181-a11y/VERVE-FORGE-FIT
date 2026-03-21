@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -99,7 +100,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.home,
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: kDebugMode,
 
     // 路由重定向 — 认证守卫 + 引导流守卫
     redirect: (context, state) {

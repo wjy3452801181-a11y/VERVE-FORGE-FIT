@@ -7,6 +7,7 @@ import '../network/supabase_client.dart';
 /// 图片工具类
 class ImageUtils {
   static const _uuid = Uuid();
+  static const _allowedExtensions = {'jpg', 'jpeg', 'png', 'webp'};
 
   /// 上传图片到 Supabase Storage
   /// 返回图片公开 URL
@@ -15,7 +16,10 @@ class ImageUtils {
     required String bucket,
     String? folder,
   }) async {
-    final ext = file.path.split('.').last;
+    final ext = file.path.split('.').last.toLowerCase();
+    if (!_allowedExtensions.contains(ext)) {
+      throw ArgumentError('不支持的图片格式: $ext，仅支持 jpg、jpeg、png、webp');
+    }
     final fileName = '${_uuid.v4()}.$ext';
     final path = folder != null ? '$folder/$fileName' : fileName;
 

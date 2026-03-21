@@ -41,6 +41,7 @@ android/app/src/main/res/raw/google-services.json
 # 环境变量与密钥
 .env
 .env.*
+dart_defines.json
 !.env.example
 !.env.production.example
 .supabase/

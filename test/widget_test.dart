@@ -28,13 +28,13 @@ void main() {
       expect(theme.brightness, Brightness.light);
     });
 
-    test('主色调为活力橙', () {
-      expect(AppColors.primary, const Color(0xFFFF6B35));
+    test('主色调为纯黑', () {
+      expect(AppColors.primary, const Color(0xFF111111));
     });
 
-    test('运动类型各有独立标识色', () {
-      expect(AppColors.hyrox, isNot(equals(AppColors.crossfit)));
-      expect(AppColors.yoga, isNot(equals(AppColors.pilates)));
+    test('运动类型统一使用品牌主色', () {
+      expect(AppColors.hyrox, equals(AppColors.primary));
+      expect(AppColors.yoga, equals(AppColors.pilates));
     });
 
     test('训练强度色阶有 10 级', () {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:verveforge/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -526,7 +526,7 @@ void main() {
 
     test('share_link 格式为 /ai-avatar-shared/:token', () {
       const token = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6';
-      final shareLink = '/ai-avatar-shared/$token';
+      const shareLink = '/ai-avatar-shared/$token';
       expect(shareLink, startsWith('/ai-avatar-shared/'));
       expect(shareLink.split('/').last, token);
     });
@@ -643,7 +643,7 @@ void main() {
     test('分享成功后 remaining_today 正确递减', () {
       const dailyLimit = 5;
       const todayCountBefore = 2;
-      final remaining = dailyLimit - todayCountBefore - 1; // 分享后
+      const remaining = dailyLimit - todayCountBefore - 1; // 分享后
       expect(remaining, 2);
     });
 

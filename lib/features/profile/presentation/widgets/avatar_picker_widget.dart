@@ -101,25 +101,30 @@ class AvatarPickerWidget extends StatelessWidget {
       imageQuality: 85,
     );
     if (xFile == null) return;
+    // ignore: use_build_context_synchronously
+    if (!context.mounted) return;
 
     // 裁剪
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: xFile.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-      compressQuality: 80,
-      maxWidth: 512,
-      maxHeight: 512,
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: cropTitle,
           toolbarColor: AppColors.primary,
           toolbarWidgetColor: Colors.white,
           lockAspectRatio: true,
+          aspectRatioPresets: [CropAspectRatioPreset.square],
         ),
         IOSUiSettings(
           title: cropTitle,
           aspectRatioLockEnabled: true,
           resetAspectRatioEnabled: false,
+          aspectRatioPresets: [CropAspectRatioPreset.square],
+        ),
+        WebUiSettings(
+          context: context,
+          presentStyle: WebPresentStyle.dialog,
+          size: const CropperSize(width: 520, height: 520),
         ),
       ],
     );
