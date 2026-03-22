@@ -3,6 +3,7 @@ import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../app/theme/app_spacing.dart';
 import '../../app/theme/app_radius.dart';
+import '../../app/theme/app_shadows.dart';
 
 /// 训练等级徽章（Bronze / Silver / Gold / Elite）
 ///
@@ -46,8 +47,8 @@ extension RankTierExtension on RankTier {
       case RankTier.rookie:  return const Color(0xFF2A2A2A);
       case RankTier.bronze:  return const Color(0xFF3D2B1F);
       case RankTier.silver:  return const Color(0xFF252525);
-      case RankTier.gold:    return const Color(0xFF2E2200);
-      case RankTier.elite:   return AppColors.primary;
+      case RankTier.gold:    return AppColors.voltSurface;   // volt 半透明
+      case RankTier.elite:   return AppColors.volt;          // 实心 volt
     }
   }
 
@@ -57,10 +58,13 @@ extension RankTierExtension on RankTier {
       case RankTier.rookie:  return const Color(0xFF888888);
       case RankTier.bronze:  return const Color(0xFFCD7F32);
       case RankTier.silver:  return const Color(0xFFBCBCBC);
-      case RankTier.gold:    return const Color(0xFFFFD700);
-      case RankTier.elite:   return Colors.white;
+      case RankTier.gold:    return AppColors.volt;          // volt 文字
+      case RankTier.elite:   return AppColors.primary;       // 黑字在 volt 底上
     }
   }
+
+  /// 是否使用 volt 发光
+  bool get hasVoltGlow => this == RankTier.gold || this == RankTier.elite;
 
   String get emoji {
     switch (this) {
@@ -108,6 +112,9 @@ class RankChip extends StatelessWidget {
           color: rank.textColor.withValues(alpha: 0.3),
           width: 0.5,
         ),
+        boxShadow: rank.hasVoltGlow
+            ? AppShadows.voltGlow(intensity: 0.6)
+            : null,
       ),
       child: compact
           ? Text(emoji.isEmpty ? rank.label[0] : emoji,

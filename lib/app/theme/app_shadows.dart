@@ -81,6 +81,22 @@ class AppShadows {
       ];
 
   // ========================
+  // Volt 发光（PR / 成就 / 排行榜第一）
+  // ========================
+  static List<BoxShadow> voltGlow({double intensity = 1.0}) => [
+        BoxShadow(
+          color: AppColors.voltGlow,
+          blurRadius: 16 * intensity,
+          spreadRadius: 2 * intensity,
+        ),
+        BoxShadow(
+          color: AppColors.voltGlowStrong.withValues(alpha: 0.15 * intensity),
+          blurRadius: 32 * intensity,
+          spreadRadius: 4 * intensity,
+        ),
+      ];
+
+  // ========================
   // 图标容器发光（Capability Card 专用）
   // ========================
   static List<BoxShadow> iconGlow({bool isDark = false}) => [

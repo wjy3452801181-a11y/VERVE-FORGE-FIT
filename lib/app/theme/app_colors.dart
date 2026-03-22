@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 /// VerveForge 颜色常量
-/// 高端运动科技感配色体系 — 纯黑白灰
+/// 高端运动科技感配色体系 — 纯黑白灰 + 单一高亮
+///
+/// 配色哲学：
+/// 底色 99% 纯黑白灰 — 安静、专注、高端
+/// Verve Volt 1% — 只在「成就时刻」出现：PR、首位登顶、徽章解锁
+/// 克制即力量。一抹电光，足以改变整个屏幕的重量。
 class AppColors {
   AppColors._();
 
@@ -11,6 +16,33 @@ class AppColors {
   static const Color primary = Color(0xFF111111);        // 纯黑 — 主色调
   static const Color secondary = Color(0xFF555555);      // 中灰 — 辅色
   static const Color accent = Color(0xFF333333);         // 深灰 — 强调色
+
+  // ========================
+  // ⚡ Verve Volt — 唯一高亮色
+  // ========================
+  /// 电光黄 — VerveForge 的成就色
+  ///
+  /// 使用规则（严格）：
+  /// ✅ PR（个人最佳）数字高亮
+  /// ✅ 排行榜第一名徽章
+  /// ✅ 成就解锁 / 徽章获得的庆祝时刻
+  /// ✅ 当前赛季冠军标识
+  /// ✅ WorkoutBar 满分（10/10）状态
+  ///
+  /// ❌ 禁止用于：导航、按钮、卡片背景、常规文字
+  /// ❌ 禁止同屏出现超过 3 处
+  static const Color volt = Color(0xFFE8FF00);            // 电光黄 — 成就高亮
+
+  /// Volt 深色变体（浅色模式背景使用）
+  static const Color voltDark = Color(0xFF9AB000);        // 深黄 — 浅色模式下的 volt
+
+  /// Volt 发光（dark mode card glow）
+  static const Color voltGlow = Color(0x33E8FF00);        // volt 20% 透明 — 发光效果
+  static const Color voltGlowStrong = Color(0x66E8FF00);  // volt 40% 透明 — 强发光
+
+  /// Volt 半透明背景（chip / badge 背景色）
+  static Color voltSurface = const Color(0xFFE8FF00).withValues(alpha: 0.10);
+  static Color voltSurfaceStrong = const Color(0xFFE8FF00).withValues(alpha: 0.18);
 
   // ========================
   // 卡片 tint（黑色不同透明度）
