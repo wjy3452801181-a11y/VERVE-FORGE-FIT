@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/error_handler.dart';
 import '../../../core/extensions/context_extensions.dart';
@@ -37,17 +38,20 @@ class _PostCreatePageState extends ConsumerState<PostCreatePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.postCreate),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: FilledButton(
               onPressed: _canSubmit ? _submit : null,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.3),
+                disabledBackgroundColor:
+                    AppColors.primary.withValues(alpha: 0.3),
               ),
               child: _isSubmitting
                   ? const SizedBox(
@@ -64,7 +68,7 @@ class _PostCreatePageState extends ConsumerState<PostCreatePage> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.pagePadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -78,15 +82,16 @@ class _PostCreatePageState extends ConsumerState<PostCreatePage> {
               decoration: InputDecoration(
                 hintText: context.l10n.postContentHint,
                 hintStyle: AppTextStyles.body.copyWith(
-                  color: context.theme.colorScheme.onSurface
-                      .withValues(alpha: 0.3),
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary,
                 ),
                 border: InputBorder.none,
               ),
               style: AppTextStyles.body,
             ),
 
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 照片网格
             PhotoGrid(
@@ -97,7 +102,7 @@ class _PostCreatePageState extends ConsumerState<PostCreatePage> {
               },
             ),
 
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
           ],
         ),
       ),

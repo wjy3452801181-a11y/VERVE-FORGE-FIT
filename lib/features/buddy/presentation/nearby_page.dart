@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/skeleton.dart';
 import '../../gym/providers/gym_provider.dart';
 import '../../gym/presentation/widgets/gym_card.dart';
 import '../providers/buddy_provider.dart';
@@ -29,6 +31,7 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
     final filter = ref.watch(buddyFilterProvider);
     final buddiesAsync = ref.watch(nearbyBuddiesProvider);
     final gymsAsync = ref.watch(nearbyGymsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -44,23 +47,31 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
           children: [
             // 运动类型筛选器
             _buildSportTypeFilter(context, ref, filter),
-            const SizedBox(height: 8),
+            AppSpacing.vGapSM,
 
             // ═══════════════════════════════
             // 区块 1：附近伙伴
             // ═══════════════════════════════
             _buildSectionHeader(
               context,
+              isDark: isDark,
               icon: Icons.people,
               title: context.l10n.nearbyBuddies,
             ),
             buddiesAsync.when(
               loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Center(child: CircularProgressIndicator()),
+                padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md, vertical: AppSpacing.lg),
+                child: Column(
+                  children: [
+                    SkeletonAvatarRow(),
+                    SizedBox(height: AppSpacing.md),
+                    SkeletonAvatarRow(),
+                  ],
+                ),
               ),
               error: (e, _) => Padding(
-                padding: const EdgeInsets.all(16),
+                padding: AppSpacing.pagePadding,
                 child: EmptyStateWidget(
                   icon: Icons.error_outline,
                   title: context.l10n.commonError,
@@ -70,7 +81,7 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
               ),
               data: (buddies) {
                 if (buddies.isEmpty) {
-                  return _buildEmptyBuddies(context);
+                  return _buildEmptyBuddies(context, isDark);
                 }
                 return Column(
                   children: buddies
@@ -84,13 +95,14 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
               },
             ),
 
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // ═══════════════════════════════
             // 区块 2：推荐训练馆
             // ═══════════════════════════════
             _buildSectionHeader(
               context,
+              isDark: isDark,
               icon: Icons.fitness_center,
               title: context.l10n.nearbyGymsRecommend,
               trailing: GestureDetector(
@@ -100,7 +112,7 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
                   children: [
                     const Icon(Icons.map_outlined,
                         size: 14, color: AppColors.primary),
-                    const SizedBox(width: 4),
+                    AppSpacing.hGapXS,
                     Text(
                       context.l10n.gymNearby,
                       style: AppTextStyles.caption.copyWith(
@@ -114,11 +126,17 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
             ),
             gymsAsync.when(
               loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Center(child: CircularProgressIndicator()),
+                padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md, vertical: AppSpacing.lg),
+                child: Column(
+                  children: [
+                    SkeletonCard(),
+                    SkeletonCard(),
+                  ],
+                ),
               ),
               error: (e, _) => Padding(
-                padding: const EdgeInsets.all(16),
+                padding: AppSpacing.pagePadding,
                 child: EmptyStateWidget(
                   icon: Icons.error_outline,
                   title: context.l10n.commonError,
@@ -128,7 +146,7 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
               ),
               data: (gyms) {
                 if (gyms.isEmpty) {
-                  return _buildEmptyGyms(context);
+                  return _buildEmptyGyms(context, isDark);
                 }
                 // 最多展示 5 个推荐训练馆
                 final displayGyms = gyms.take(5).toList();
@@ -163,10 +181,11 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
       height: 44,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.x12, vertical: AppSpacing.xs),
         children: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: ChoiceChip(
               label: Text(context.l10n.workoutFilterAll),
               selected: filter.sportType == null,
@@ -178,7 +197,7 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
             ),
           ),
           ...AppConstants.sportTypes.map((type) => Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: AppSpacing.sm),
                 child: ChoiceChip(
                   label: Text(_sportLabel(context, type)),
                   selected: filter.sportType == type,
@@ -194,22 +213,30 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
     );
   }
 
-  /// 区块标题
+  /// 区块标题 — _SectionLabel 风格（UPPERCASE + secondary color）
   Widget _buildSectionHeader(
     BuildContext context, {
+    required bool isDark,
     required IconData icon,
     required String title,
     Widget? trailing,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: AppColors.primary),
-          const SizedBox(width: 6),
+          Icon(icon, size: 16, color: AppColors.primary),
+          AppSpacing.hGapSM,
           Text(
-            title,
-            style: AppTextStyles.subtitle.copyWith(fontSize: 15),
+            title.toUpperCase(),
+            style: AppTextStyles.label.copyWith(
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.lightTextSecondary,
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const Spacer(),
           if (trailing != null) trailing,
@@ -219,28 +246,35 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
   }
 
   /// 伙伴为空的提示
-  Widget _buildEmptyBuddies(BuildContext context) {
+  Widget _buildEmptyBuddies(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
+      padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.lg, horizontal: AppSpacing.xl),
       child: Column(
         children: [
           Icon(
             Icons.people_outline,
             size: 48,
-            color: context.colorScheme.onSurface.withValues(alpha: 0.2),
+            color: isDark
+                ? AppColors.darkTextSecondary.withValues(alpha: 0.4)
+                : AppColors.lightTextSecondary.withValues(alpha: 0.4),
           ),
-          const SizedBox(height: 8),
+          AppSpacing.vGapSM,
           Text(
             context.l10n.nearbyNoBuddies,
             style: AppTextStyles.body.copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.lightTextSecondary,
             ),
           ),
-          const SizedBox(height: 4),
+          AppSpacing.vGapXS,
           Text(
             context.l10n.nearbyNoBuddiesTip,
             style: AppTextStyles.caption.copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+              color: isDark
+                  ? AppColors.darkTextSecondary.withValues(alpha: 0.6)
+                  : AppColors.lightTextSecondary.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -249,28 +283,35 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
   }
 
   /// 训练馆为空的提示
-  Widget _buildEmptyGyms(BuildContext context) {
+  Widget _buildEmptyGyms(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
+      padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.lg, horizontal: AppSpacing.xl),
       child: Column(
         children: [
           Icon(
             Icons.fitness_center_outlined,
             size: 48,
-            color: context.colorScheme.onSurface.withValues(alpha: 0.2),
+            color: isDark
+                ? AppColors.darkTextSecondary.withValues(alpha: 0.4)
+                : AppColors.lightTextSecondary.withValues(alpha: 0.4),
           ),
-          const SizedBox(height: 8),
+          AppSpacing.vGapSM,
           Text(
             context.l10n.nearbyNoGyms,
             style: AppTextStyles.body.copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.lightTextSecondary,
             ),
           ),
-          const SizedBox(height: 4),
+          AppSpacing.vGapXS,
           Text(
             context.l10n.nearbyNoGymsTip,
             style: AppTextStyles.caption.copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+              color: isDark
+                  ? AppColors.darkTextSecondary.withValues(alpha: 0.6)
+                  : AppColors.lightTextSecondary.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -287,12 +328,7 @@ class _NearbyPageState extends ConsumerState<NearbyPage> {
     try {
       await ref.read(buddyRequestActionProvider).send(targetUserId);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.commonSuccess),
-            backgroundColor: AppColors.secondary,
-          ),
-        );
+        ErrorHandler.showSuccess(context, context.l10n.commonSuccess);
       }
     } catch (e) {
       if (context.mounted) {

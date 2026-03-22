@@ -5,8 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
+import '../../../app/theme/app_radius.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/skeleton.dart';
 import '../../gym/providers/gym_provider.dart';
 import '../../gym/presentation/widgets/gym_card.dart';
 import '../../gym/presentation/widgets/gym_filter_bar.dart';
@@ -32,6 +35,8 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     // 搜索模式使用 gymSearchProvider，否则使用 nearbyGymsProvider
     final gymsAsync = _isSearchMode
         ? ref.watch(gymSearchProvider)
@@ -49,7 +54,9 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                   hintText: context.l10n.gymSearch,
                   border: InputBorder.none,
                   hintStyle: AppTextStyles.body.copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
                   ),
                 ),
                 onChanged: (value) {
@@ -90,13 +97,20 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
           // 运动类型筛选栏（搜索模式下隐藏）
           if (!_isSearchMode) ...[
             const GymFilterBar(),
-            const SizedBox(height: 4),
+            AppSpacing.vGapXS,
           ],
 
           // 训练馆列表
           Expanded(
             child: gymsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => ListView(
+                physics: const NeverScrollableScrollPhysics(),
+                children: const [
+                  SkeletonCard(),
+                  SkeletonCard(),
+                  SkeletonCard(),
+                ],
+              ),
               error: (e, _) => EmptyStateWidget(
                 icon: Icons.error_outline,
                 title: context.l10n.commonError,
@@ -174,17 +188,18 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   /// 底部"提交训练馆"提示行
   Widget _buildSubmitGymTile(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.md),
       child: InkWell(
         onTap: () => context.push(AppRoutes.gymSubmit),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.bMD,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.cardPaddingCompact,
           decoration: BoxDecoration(
             border: Border.all(
               color: AppColors.primary.withValues(alpha: 0.3),
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.bMD,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -194,7 +209,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                 size: 20,
                 color: AppColors.primary.withValues(alpha: 0.7),
               ),
-              const SizedBox(width: 8),
+              AppSpacing.hGapSM,
               Text(
                 context.l10n.gymSubmit,
                 style: AppTextStyles.body.copyWith(

@@ -5,11 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
+import '../../../app/theme/app_radius.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
 import '../../../shared/widgets/avatar_widget.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/skeleton.dart';
 import '../../../shared/widgets/sport_type_icon.dart';
 import '../domain/buddy_request_model.dart';
 import '../providers/buddy_provider.dart';
@@ -39,7 +42,17 @@ class BuddyListPage extends ConsumerWidget {
             ref.read(acceptedBuddiesProvider.notifier).refresh(),
         color: AppColors.primary,
         child: buddiesAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => ListView(
+            padding: AppSpacing.pagePadding,
+            physics: const NeverScrollableScrollPhysics(),
+            children: const [
+              SkeletonAvatarRow(),
+              SizedBox(height: AppSpacing.md),
+              SkeletonAvatarRow(),
+              SizedBox(height: AppSpacing.md),
+              SkeletonAvatarRow(),
+            ],
+          ),
           error: (e, _) => Center(
             child: EmptyStateWidget(
               icon: Icons.error_outline,
@@ -62,7 +75,7 @@ class BuddyListPage extends ConsumerWidget {
               );
             }
             return ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               itemCount: buddies.length,
               itemBuilder: (context, index) => _BuddyListCard(
                 buddy: buddies[index],
@@ -83,15 +96,27 @@ class _BuddyListCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: AppSpacing.cardMargin,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: AppRadius.bLG,
+        border: Border.all(
+          color: isDark
+              ? AppColors.darkBorder.withValues(alpha: 0.5)
+              : AppColors.lightBorder.withValues(alpha: 0.6),
+          width: 0.5,
+        ),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.bLG,
         onTap: () {
           // TODO: 跳转到用户详情页
         },
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.cardPaddingCompact,
           child: Row(
             children: [
               AvatarWidget(
@@ -99,7 +124,7 @@ class _BuddyListCard extends ConsumerWidget {
                 imageUrl: buddy.otherAvatarUrl,
                 fallbackText: buddy.otherNickname,
               ),
-              const SizedBox(width: 12),
+              AppSpacing.hGap12,
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,24 +136,26 @@ class _BuddyListCard extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (buddy.otherBio.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      AppSpacing.vGapXS,
                       Text(
                         buddy.otherBio,
                         style: AppTextStyles.caption.copyWith(
-                          color: context.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.lightTextSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                     if (buddy.otherSportTypes.isNotEmpty) ...[
-                      const SizedBox(height: 6),
+                      AppSpacing.vGapSM,
                       Row(
                         children: buddy.otherSportTypes
                             .take(4)
                             .map((s) => Padding(
-                                  padding: const EdgeInsets.only(right: 4),
+                                  padding: const EdgeInsets.only(
+                                      right: AppSpacing.xs),
                                   child: SportTypeIcon(sportType: s, size: 18),
                                 ))
                             .toList(),
@@ -142,7 +169,9 @@ class _BuddyListCard extends ConsumerWidget {
               PopupMenuButton<String>(
                 icon: Icon(
                   Icons.more_vert,
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary,
                 ),
                 onSelected: (value) {
                   if (value == 'remove') {
@@ -156,7 +185,7 @@ class _BuddyListCard extends ConsumerWidget {
                       children: [
                         Icon(Icons.person_remove_outlined,
                             size: 18, color: context.colorScheme.error),
-                        const SizedBox(width: 8),
+                        AppSpacing.hGapSM,
                         Text(
                           context.l10n.buddyRemove,
                           style: TextStyle(color: context.colorScheme.error),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_radius.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../shared/widgets/avatar_widget.dart';
 import '../../../../shared/widgets/sport_type_icon.dart';
@@ -22,13 +24,25 @@ class BuddyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: AppSpacing.cardMargin,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: AppRadius.bLG,
+        border: Border.all(
+          color: isDark
+              ? AppColors.darkBorder.withValues(alpha: 0.5)
+              : AppColors.lightBorder.withValues(alpha: 0.6),
+          width: 0.5,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.bLG,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.cardPaddingCompact,
           child: Row(
             children: [
               // 头像
@@ -37,7 +51,7 @@ class BuddyCard extends StatelessWidget {
                 imageUrl: buddy.avatarUrl,
                 fallbackText: buddy.nickname,
               ),
-              const SizedBox(width: 12),
+              AppSpacing.hGap12,
 
               // 信息区域
               Expanded(
@@ -56,11 +70,14 @@ class BuddyCard extends StatelessWidget {
                           ),
                         ),
                         if (buddy.distanceKm != null) ...[
-                          Icon(Icons.location_on_outlined,
-                              size: 13,
-                              color: context.colorScheme.onSurface
-                                  .withValues(alpha: 0.5)),
-                          const SizedBox(width: 2),
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 13,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.lightTextSecondary,
+                          ),
+                          AppSpacing.hGapXS,
                           Text(
                             buddy.distanceDisplay,
                             style: AppTextStyles.caption.copyWith(
@@ -71,17 +88,18 @@ class BuddyCard extends StatelessWidget {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    AppSpacing.vGapXS,
 
                     // 简介
                     if (buddy.bio.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                         child: Text(
                           buddy.bio,
                           style: AppTextStyles.caption.copyWith(
-                            color: context.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.lightTextSecondary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -93,7 +111,8 @@ class BuddyCard extends StatelessWidget {
                       children: [
                         ...buddy.sportTypes.take(4).map(
                               (s) => Padding(
-                                padding: const EdgeInsets.only(right: 4),
+                                padding:
+                                    const EdgeInsets.only(right: AppSpacing.xs),
                                 child: SportTypeIcon(sportType: s, size: 20),
                               ),
                             ),
@@ -106,10 +125,10 @@ class BuddyCard extends StatelessWidget {
                         if (buddy.experienceLevel != null)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                                horizontal: AppSpacing.sm, vertical: 2),
                             decoration: BoxDecoration(
                               color: AppColors.secondary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: AppRadius.bXS,
                             ),
                             child: Text(
                               buddy.experienceLevelDisplay,
@@ -125,7 +144,7 @@ class BuddyCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              AppSpacing.hGapSM,
 
               // 约练按钮
               _buildBuddyUpButton(context),
@@ -141,10 +160,11 @@ class BuddyCard extends StatelessWidget {
     return GestureDetector(
       onTap: onBuddyUp,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.x12, vertical: AppSpacing.sm),
+        decoration: const BoxDecoration(
           color: AppColors.primary,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.bPill,
         ),
         child: Text(
           context.l10n.sendBuddyRequest,

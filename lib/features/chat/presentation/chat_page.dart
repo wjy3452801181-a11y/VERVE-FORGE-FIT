@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
+import '../../../app/theme/app_radius.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
 import '../../../core/network/supabase_client.dart';
 import '../../../shared/widgets/avatar_widget.dart';
+import '../../../shared/widgets/skeleton.dart';
 import '../domain/message_model.dart';
 import '../providers/chat_provider.dart';
 
@@ -76,6 +79,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(messagesProvider(widget.otherUserId));
     final currentUserId = SupabaseClientHelper.currentUserId ?? '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -86,14 +90,23 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           // 消息列表
           Expanded(
             child: messagesAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => ListView(
+                padding: AppSpacing.pagePadding,
+                physics: const NeverScrollableScrollPhysics(),
+                children: const [
+                  SkeletonAvatarRow(),
+                  SizedBox(height: AppSpacing.md),
+                  SkeletonAvatarRow(),
+                  SizedBox(height: AppSpacing.md),
+                  SkeletonAvatarRow(),
+                ],
+              ),
               error: (e, _) => Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(context.l10n.commonError),
-                    const SizedBox(height: 8),
+                    AppSpacing.vGapSM,
                     TextButton(
                       onPressed: () => ref.invalidate(
                           messagesProvider(widget.otherUserId)),
@@ -111,15 +124,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                         Icon(
                           Icons.chat_bubble_outline,
                           size: 48,
-                          color: context.colorScheme.onSurface
-                              .withValues(alpha: 0.2),
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                                  .withValues(alpha: 0.4)
+                              : AppColors.lightTextSecondary
+                                  .withValues(alpha: 0.4),
                         ),
-                        const SizedBox(height: 8),
+                        AppSpacing.vGapSM,
                         Text(
                           context.l10n.chatEmpty,
                           style: AppTextStyles.caption.copyWith(
-                            color: context.colorScheme.onSurface
-                                .withValues(alpha: 0.5),
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.lightTextSecondary,
                           ),
                         ),
                       ],
@@ -130,7 +147,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   controller: _scrollController,
                   reverse: true, // 最新消息在底部
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
+                      horizontal: AppSpacing.x12, vertical: AppSpacing.sm),
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final msg = messages[index];
@@ -151,26 +168,28 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
 
           // 输入栏
-          _buildInputBar(context),
+          _buildInputBar(context, isDark),
         ],
       ),
     );
   }
 
   /// 底部输入栏
-  Widget _buildInputBar(BuildContext context) {
+  Widget _buildInputBar(BuildContext context, bool isDark) {
     return Container(
       padding: EdgeInsets.only(
-        left: 12,
-        right: 8,
-        top: 8,
-        bottom: context.padding.bottom + 8,
+        left: AppSpacing.x12,
+        right: AppSpacing.sm,
+        top: AppSpacing.sm,
+        bottom: context.padding.bottom + AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: context.colorScheme.surface,
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
         border: Border(
           top: BorderSide(
-            color: context.colorScheme.onSurface.withValues(alpha: 0.1),
+            color: isDark
+                ? AppColors.darkDivider
+                : AppColors.lightDivider,
           ),
         ),
       ),
@@ -186,23 +205,27 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               decoration: InputDecoration(
                 hintText: context.l10n.chatInputHint,
                 filled: true,
-                fillColor: context.colorScheme.surfaceContainerHighest,
+                fillColor: isDark
+                    ? AppColors.darkCardHover
+                    : AppColors.lightCardHover,
                 contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
+                    horizontal: AppSpacing.md, vertical: AppSpacing.x10),
+                border: const OutlineInputBorder(
+                  borderRadius: AppRadius.bPill,
                   borderSide: BorderSide.none,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          AppSpacing.hGapSM,
           IconButton(
             onPressed: _isSending ? null : _send,
             icon: Icon(
               Icons.send_rounded,
               color: _isSending
-                  ? context.colorScheme.onSurface.withValues(alpha: 0.3)
+                  ? (isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary)
                   : AppColors.primary,
             ),
           ),
@@ -226,8 +249,10 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Row(
         mainAxisAlignment:
             isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -236,7 +261,7 @@ class _MessageBubble extends StatelessWidget {
           // 对方头像
           if (!isMine)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
               child: showAvatar
                   ? AvatarWidget(
                       size: 32,
@@ -253,11 +278,13 @@ class _MessageBubble extends StatelessWidget {
                 maxWidth: MediaQuery.of(context).size.width * 0.7,
               ),
               padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 10),
+                  horizontal: AppSpacing.x14, vertical: AppSpacing.x10),
               decoration: BoxDecoration(
                 color: isMine
                     ? AppColors.primary
-                    : context.colorScheme.surfaceContainerHighest,
+                    : (isDark
+                        ? AppColors.darkCardHover
+                        : AppColors.lightCardHover),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -272,14 +299,14 @@ class _MessageBubble extends StatelessWidget {
                 style: AppTextStyles.body.copyWith(
                   color: isMine
                       ? Colors.white
-                      : context.colorScheme.onSurface,
+                      : (isDark ? Colors.white : Colors.black87),
                 ),
               ),
             ),
           ),
 
           // 自己的消息右边留空
-          if (isMine) const SizedBox(width: 8),
+          if (isMine) AppSpacing.hGapSM,
         ],
       ),
     );
