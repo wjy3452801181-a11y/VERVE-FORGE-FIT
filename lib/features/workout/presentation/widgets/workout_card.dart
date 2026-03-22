@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_radius.dart';
 import '../../../../core/extensions/datetime_extensions.dart';
 import '../../../../shared/widgets/sport_type_icon.dart';
 import '../../domain/workout_model.dart';
@@ -19,20 +21,46 @@ class WorkoutCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final intensityColor = AppColors.intensityGradient[workout.intensity - 1];
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    return Container(
+      margin: AppSpacing.cardMargin,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: AppRadius.bMD,
+        border: Border(
+          left: BorderSide(color: _sportColor(workout.sportType), width: 3),
+          top: BorderSide(
+            color: isDark
+                ? AppColors.darkBorder.withValues(alpha: 0.5)
+                : AppColors.lightBorder.withValues(alpha: 0.6),
+            width: 0.5,
+          ),
+          right: BorderSide(
+            color: isDark
+                ? AppColors.darkBorder.withValues(alpha: 0.5)
+                : AppColors.lightBorder.withValues(alpha: 0.6),
+            width: 0.5,
+          ),
+          bottom: BorderSide(
+            color: isDark
+                ? AppColors.darkBorder.withValues(alpha: 0.5)
+                : AppColors.lightBorder.withValues(alpha: 0.6),
+            width: 0.5,
+          ),
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.bMD,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.x12),
           child: Row(
             children: [
               // 运动类型图标
               SportTypeIcon(sportType: workout.sportType, size: 44),
-              const SizedBox(width: 12),
+              AppSpacing.hGap12,
 
               // 信息区
               Expanded(
@@ -44,16 +72,19 @@ class WorkoutCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             _sportLabel(workout.sportType),
-                            style: AppTextStyles.subtitle.copyWith(fontSize: 15),
+                            style:
+                                AppTextStyles.subtitle.copyWith(fontSize: 15),
                           ),
                         ),
                         if (workout.isDraft)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                              horizontal: AppSpacing.x6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.warning.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: AppRadius.bXS,
                             ),
                             child: const Text(
                               '草稿',
@@ -66,17 +97,21 @@ class WorkoutCard extends StatelessWidget {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    AppSpacing.vGapXS,
                     Row(
                       children: [
-                        Icon(Icons.timer_outlined, size: 14,
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
-                        const SizedBox(width: 4),
-                        Text(
-                          workout.durationDisplay,
-                          style: AppTextStyles.caption,
+                        Icon(
+                          Icons.timer_outlined,
+                          size: 14,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.5),
                         ),
-                        const SizedBox(width: 12),
+                        AppSpacing.hGapXS,
+                        Text(workout.durationDisplay,
+                            style: AppTextStyles.caption),
+                        AppSpacing.hGap12,
                         Container(
                           width: 8,
                           height: 8,
@@ -85,26 +120,30 @@ class WorkoutCard extends StatelessWidget {
                             shape: BoxShape.circle,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${workout.intensity}/10',
-                          style: AppTextStyles.caption,
-                        ),
+                        AppSpacing.hGapXS,
+                        Text('${workout.intensity}/10',
+                            style: AppTextStyles.caption),
                         if (workout.caloriesBurned != null) ...[
-                          const SizedBox(width: 12),
-                          Icon(Icons.local_fire_department_outlined, size: 14,
-                              color: AppColors.primary.withValues(alpha: 0.7)),
-                          const SizedBox(width: 2),
-                          Text(
-                            '${workout.caloriesBurned}kcal',
-                            style: AppTextStyles.caption,
+                          AppSpacing.hGap12,
+                          Icon(
+                            Icons.local_fire_department_outlined,
+                            size: 14,
+                            color: AppColors.primary.withValues(alpha: 0.7),
                           ),
+                          AppSpacing.hGapXS,
+                          Text('${workout.caloriesBurned}kcal',
+                              style: AppTextStyles.caption),
                         ],
-                        if (workout.hasMetrics && workout.metricsDisplay.isNotEmpty) ...[
-                          const SizedBox(width: 12),
-                          Icon(Icons.emoji_events_outlined, size: 14,
-                              color: _sportColor(workout.sportType).withValues(alpha: 0.7)),
-                          const SizedBox(width: 2),
+                        if (workout.hasMetrics &&
+                            workout.metricsDisplay.isNotEmpty) ...[
+                          AppSpacing.hGap12,
+                          Icon(
+                            Icons.emoji_events_outlined,
+                            size: 14,
+                            color: _sportColor(workout.sportType)
+                                .withValues(alpha: 0.7),
+                          ),
+                          AppSpacing.hGapXS,
                           Flexible(
                             child: Text(
                               workout.metricsDisplay,
@@ -118,11 +157,14 @@ class WorkoutCard extends StatelessWidget {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    AppSpacing.vGapXS,
                     Text(
                       workout.workoutDate.smart,
                       style: AppTextStyles.caption.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.4),
                         fontSize: 11,
                       ),
                     ),
@@ -133,15 +175,24 @@ class WorkoutCard extends StatelessWidget {
               // 照片指示器
               if (workout.photoUrls.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.only(left: AppSpacing.sm),
                   child: Icon(
                     Icons.photo_library_outlined,
                     size: 18,
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.3),
                   ),
                 ),
 
-              const Icon(Icons.chevron_right, size: 20),
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
             ],
           ),
         ),

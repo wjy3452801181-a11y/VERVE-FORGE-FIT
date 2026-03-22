@@ -4,6 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../domain/workout_model.dart';
@@ -33,12 +34,14 @@ class _WorkoutCalendarPageState extends ConsumerState<WorkoutCalendarPage> {
 
   ({DateTime start, DateTime end}) get _currentRange {
     final first = DateTime(_focusedDay.year, _focusedDay.month, 1);
-    final last = DateTime(_focusedDay.year, _focusedDay.month + 1, 0, 23, 59, 59);
+    final last = DateTime(
+        _focusedDay.year, _focusedDay.month + 1, 0, 23, 59, 59);
     return (start: first, end: last);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final range = _currentRange;
     final calendarAsync = ref.watch(workoutCalendarProvider(range));
 
@@ -55,18 +58,19 @@ class _WorkoutCalendarPageState extends ConsumerState<WorkoutCalendarPage> {
           onAction: () => ref.invalidate(workoutCalendarProvider(range)),
         ),
         data: (workouts) {
-          // 按日期分组
           final Map<DateTime, List<WorkoutModel>> grouped = {};
           for (final w in workouts) {
-            final key = DateTime(w.workoutDate.year, w.workoutDate.month, w.workoutDate.day);
+            final key = DateTime(
+                w.workoutDate.year, w.workoutDate.month, w.workoutDate.day);
             grouped.putIfAbsent(key, () => []).add(w);
           }
 
-          // 选中日的训练
           final selectedKey = _selectedDay != null
-              ? DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day)
+              ? DateTime(_selectedDay!.year, _selectedDay!.month,
+                  _selectedDay!.day)
               : null;
-          final selectedWorkouts = selectedKey != null ? (grouped[selectedKey] ?? []) : <WorkoutModel>[];
+          final selectedWorkouts =
+              selectedKey != null ? (grouped[selectedKey] ?? []) : <WorkoutModel>[];
 
           return Column(
             children: [
@@ -113,18 +117,29 @@ class _WorkoutCalendarPageState extends ConsumerState<WorkoutCalendarPage> {
                   titleCentered: true,
                 ),
               ),
-              const Divider(height: 1),
+              Divider(
+                height: 1,
+                color: isDark ? AppColors.darkDivider : AppColors.lightDivider,
+              ),
 
               // 选中日期的训练列表
               Expanded(
                 child: selectedWorkouts.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           '该日无训练记录',
-                          style: AppTextStyles.caption,
+                          style: AppTextStyles.caption.copyWith(
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.lightTextSecondary,
+                          ),
                         ),
                       )
                     : ListView.builder(
+                        padding: const EdgeInsets.only(
+                          top: AppSpacing.xs,
+                          bottom: AppSpacing.md,
+                        ),
                         itemCount: selectedWorkouts.length,
                         itemBuilder: (context, index) {
                           return WorkoutCard(

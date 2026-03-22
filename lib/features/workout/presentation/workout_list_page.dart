@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/skeleton.dart';
 import '../providers/workout_provider.dart';
 import 'widgets/sport_type_selector.dart';
 import 'widgets/workout_card.dart';
@@ -39,24 +42,33 @@ class WorkoutListPage extends ConsumerWidget {
               }
             },
           ),
-          const SizedBox(height: 8),
+          AppSpacing.vGapSM,
 
           // 统计卡片
           statsAsync.when(
-            loading: () => const SizedBox.shrink(),
+            loading: () => const Padding(
+              padding: AppSpacing.pageHorizontalPadding,
+              child: SkeletonStatBar(count: 3),
+            ),
             error: (_, __) => const SizedBox.shrink(),
             data: (stats) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: WorkoutStatsCard(stats: stats),
             ),
           ),
-          const SizedBox(height: 8),
+          AppSpacing.vGapSM,
 
           // 列表
           Expanded(
             child: workoutsAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 5,
+                itemBuilder: (_, __) => const Padding(
+                  padding: AppSpacing.cardMargin,
+                  child: SkeletonAvatarRow(),
+                ),
+              ),
               error: (e, _) => EmptyStateWidget(
                 icon: Icons.error_outline,
                 title: context.l10n.commonError,
@@ -77,6 +89,7 @@ class WorkoutListPage extends ConsumerWidget {
                     ref.invalidate(workoutListProvider);
                     ref.invalidate(workoutStatsProvider);
                   },
+                  color: AppColors.primary,
                   child: NotificationListener<ScrollNotification>(
                     onNotification: (notification) {
                       if (notification is ScrollEndNotification &&

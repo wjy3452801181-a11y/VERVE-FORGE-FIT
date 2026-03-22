@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
@@ -64,42 +66,42 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           children: [
             // 运动类型选择
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: Text(
                 context.l10n.workoutType,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: AppTextStyles.label.copyWith(letterSpacing: 1.0),
               ),
             ),
-            const SizedBox(height: 8),
+            AppSpacing.vGapSM,
             SportTypeSelector(
               selected: _sportType,
               onSelected: (type) {
                 setState(() {
                   _sportType = type;
-                  _metrics = {}; // 切换运动类型时重置 metrics
+                  _metrics = {};
                 });
               },
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 运动专项成绩（可折叠）
             if (MetricsFormSwitcher.hasMetricsForm(_sportType))
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: AppSpacing.pageHorizontalPadding,
                 child: MetricsFormSwitcher(
                   sportType: _sportType,
                   onMetricsChanged: (m) => _metrics = m,
                 ),
               ),
-            const SizedBox(height: 8),
+            AppSpacing.vGapSM,
 
             // 训练时长
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _durationController,
                 keyboardType: TextInputType.number,
@@ -111,46 +113,42 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
                 validator: Validators.duration,
               ),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 训练强度
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: Text(
                 context.l10n.workoutIntensity,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: AppTextStyles.label.copyWith(letterSpacing: 1.0),
               ),
             ),
-            const SizedBox(height: 8),
+            AppSpacing.vGapSM,
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: IntensitySlider(
                 value: _intensity,
                 onChanged: (v) => setState(() => _intensity = v),
               ),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 日期 + 时间
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: Row(
                 children: [
-                  Expanded(
-                    child: _buildDatePicker(context),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildTimePicker(context),
-                  ),
+                  Expanded(child: _buildDatePicker(context)),
+                  AppSpacing.hGap12,
+                  Expanded(child: _buildTimePicker(context)),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 备注
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _notesController,
                 maxLines: 3,
@@ -162,19 +160,19 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 照片
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: Text(
                 context.l10n.workoutPhotos,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: AppTextStyles.label.copyWith(letterSpacing: 1.0),
               ),
             ),
-            const SizedBox(height: 8),
+            AppSpacing.vGapSM,
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: PhotoGrid(
                 pendingFiles: _pendingPhotos,
                 onAdd: _pickPhotos,
@@ -183,18 +181,18 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
                 },
               ),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 训练馆选择（可选）
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: _buildGymSelector(context),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 发布开关
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(context.l10n.workoutShareAsPost),
@@ -203,11 +201,11 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
                 activeTrackColor: AppColors.primary,
               ),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 保存按钮
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: FilledButton(
                 onPressed: _isSaving ? null : () => _save(isDraft: false),
                 style: FilledButton.styleFrom(
@@ -225,7 +223,7 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
                     : Text(context.l10n.workoutSave),
               ),
             ),
-            const SizedBox(height: 32),
+            AppSpacing.vGapXXL,
           ],
         ),
       ),
@@ -347,7 +345,6 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
   Future<void> _save({required bool isDraft}) async {
     if (!isDraft && !_formKey.currentState!.validate()) return;
 
-    // 首次使用时弹出 PIPL 数据采集授权
     if (!_consentChecked) {
       final granted = await DataCollectionConsent.ensureConsent(context);
       if (!granted) return;
@@ -359,7 +356,6 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
     try {
       final repo = ref.read(workoutRepositoryProvider);
 
-      // 上传照片
       List<String> photoUrls = [];
       if (_pendingPhotos.isNotEmpty) {
         photoUrls = await repo.uploadPhotos(_pendingPhotos);
@@ -387,7 +383,6 @@ class _WorkoutCreatePageState extends ConsumerState<WorkoutCreatePage> {
         metrics: _metrics,
       );
 
-      // 刷新列表和统计
       ref.invalidate(workoutListProvider);
       ref.invalidate(workoutStatsProvider);
 
