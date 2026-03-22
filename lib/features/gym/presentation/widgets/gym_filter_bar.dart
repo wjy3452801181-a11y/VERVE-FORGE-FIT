@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../providers/gym_provider.dart';
@@ -18,11 +19,11 @@ class GymFilterBar extends ConsumerWidget {
       height: 44,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: AppSpacing.pageHorizontalPadding,
         children: [
           // "全部"筛选
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: FilterChip(
               label: Text(context.l10n.workoutFilterAll),
               selected: filter.sportType == null,
@@ -38,7 +39,7 @@ class GymFilterBar extends ConsumerWidget {
           ...AppConstants.sportTypes.map((type) {
             final isSelected = filter.sportType == type;
             return Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
               child: FilterChip(
                 label: Text(_sportLabel(context, type)),
                 selected: isSelected,

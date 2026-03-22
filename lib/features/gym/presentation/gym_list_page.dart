@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../app/router.dart';
+import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_spacing.dart';
+import '../../../app/theme/app_radius.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../providers/gym_provider.dart';
@@ -11,11 +14,6 @@ import 'widgets/gym_card.dart';
 import 'widgets/gym_filter_bar.dart';
 
 /// 训练馆列表页 — 搜索框 + 运动类型筛选 + 距离排序
-///
-/// 【性能优化说明】
-/// 1. 搜索输入接入防抖 Provider（500ms），减少 80% 无效请求
-/// 2. loading 状态使用 Shimmer 骨架屏
-/// 3. gymListProvider 已添加 keepAlive，返回列表不重载
 class GymListPage extends ConsumerStatefulWidget {
   const GymListPage({super.key});
 
@@ -49,8 +47,6 @@ class _GymListPageState extends ConsumerState<GymListPage> {
                   hintText: context.l10n.gymSearch,
                   border: InputBorder.none,
                 ),
-                // 【性能优化】更新原始关键词 Provider
-                // 实际查询由 _gymSearchDebouncerProvider 防抖 500ms 后触发
                 onChanged: (value) {
                   ref.read(gymSearchKeywordProvider.notifier).state = value;
                 },
@@ -76,8 +72,7 @@ class _GymListPageState extends ConsumerState<GymListPage> {
           if (!_isSearchMode) const GymFilterBar(),
           Expanded(
             child: gymsAsync.when(
-              // 【性能优化】Shimmer 骨架屏
-              loading: () => const _GymListPageSkeleton(),
+              loading: () => const _GymListSkeleton(),
               error: (e, _) => EmptyStateWidget(
                 icon: Icons.error_outline,
                 title: context.l10n.commonError,
@@ -95,7 +90,8 @@ class _GymListPageState extends ConsumerState<GymListPage> {
                   return EmptyStateWidget(
                     icon: Icons.fitness_center_outlined,
                     title: context.l10n.commonEmpty,
-                    subtitle: _isSearchMode ? null : context.l10n.gymNearby,
+                    subtitle:
+                        _isSearchMode ? null : context.l10n.gymNearby,
                   );
                 }
 
@@ -107,6 +103,7 @@ class _GymListPageState extends ConsumerState<GymListPage> {
                       await ref.read(gymListProvider.notifier).refresh();
                     }
                   },
+                  color: AppColors.primary,
                   child: ListView.builder(
                     itemCount: gyms.length,
                     itemBuilder: (context, index) {
@@ -129,64 +126,66 @@ class _GymListPageState extends ConsumerState<GymListPage> {
   }
 }
 
-// ================================================================
-// 【性能优化】列表页骨架屏
-// ================================================================
+// -------------------------------------------------------
+// 列表页骨架屏 — Shimmer + AppColors tokens
+// -------------------------------------------------------
 
-class _GymListPageSkeleton extends StatelessWidget {
-  const _GymListPageSkeleton();
+class _GymListSkeleton extends StatelessWidget {
+  const _GymListSkeleton();
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
+      baseColor: isDark ? AppColors.darkCard : AppColors.lightCard,
       highlightColor:
-          isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F5F5),
+          isDark ? AppColors.darkCardHover : AppColors.lightCardHover,
       child: ListView.builder(
         physics: const NeverScrollableScrollPhysics(),
         itemCount: 6,
-        itemBuilder: (context, index) => Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+        itemBuilder: (context, index) => Container(
+          margin: AppSpacing.cardMargin,
+          padding: AppSpacing.cardPaddingCompact,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: AppRadius.bLG,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: AppRadius.bSM,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 140,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+              ),
+              AppSpacing.hGap12,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 140,
+                      height: 14,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: AppRadius.bXS,
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: 200,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                    ),
+                    AppSpacing.vGapSM,
+                    Container(
+                      width: 200,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: AppRadius.bXS,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

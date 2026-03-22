@@ -6,10 +6,13 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
+import '../../../app/theme/app_radius.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/skeleton.dart';
 import '../../../shared/widgets/sport_type_icon.dart';
 import '../domain/gym_review_model.dart';
 import '../providers/gym_provider.dart';
@@ -33,12 +36,19 @@ class GymDetailPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text(context.l10n.gymDetail),
         actions: [
-          // 收藏按钮
           _buildFavoriteAppBarButton(ref, favAsync),
         ],
       ),
       body: gymAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => ListView(
+          padding: AppSpacing.pagePadding,
+          physics: const NeverScrollableScrollPhysics(),
+          children: const [
+            SkeletonCard(),
+            SizedBox(height: AppSpacing.x12),
+            SkeletonCard(),
+          ],
+        ),
         error: (e, _) => EmptyStateWidget(
           icon: Icons.error_outline,
           title: context.l10n.commonError,
@@ -53,6 +63,9 @@ class GymDetailPage extends ConsumerWidget {
             );
           }
 
+          final isDark =
+              Theme.of(context).brightness == Brightness.dark;
+
           return ListView(
             children: [
               // 照片轮播
@@ -65,33 +78,17 @@ class GymDetailPage extends ConsumerWidget {
                       return Image.network(
                         gym.photoUrls[index],
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          child: const Icon(
-                            Icons.fitness_center,
-                            size: 48,
-                            color: AppColors.primary,
-                          ),
-                        ),
+                        errorBuilder: (_, __, ___) => _PhotoPlaceholder(
+                            isDark: isDark),
                       );
                     },
                   ),
                 )
               else
-                Container(
-                  height: 160,
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  child: const Center(
-                    child: Icon(
-                      Icons.fitness_center,
-                      size: 48,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
+                _PhotoPlaceholder(isDark: isDark, height: 160),
 
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: AppSpacing.pagePadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -99,82 +96,104 @@ class GymDetailPage extends ConsumerWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(gym.name, style: AppTextStyles.h2),
+                          child: Text(gym.name,
+                              style: AppTextStyles.h2),
                         ),
-                        if (gym.isVerified)
-                          Chip(
-                            avatar: const Icon(Icons.verified,
-                                size: 16, color: AppColors.secondary),
-                            label: Text(context.l10n.gymVerified),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
+                        if (gym.isVerified) ...[
+                          AppSpacing.hGapSM,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary
+                                  .withValues(alpha: 0.12),
+                              borderRadius: AppRadius.bXS,
+                              border: Border.all(
+                                color: AppColors.secondary
+                                    .withValues(alpha: 0.3),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.verified,
+                                    size: 13,
+                                    color: AppColors.secondary),
+                                AppSpacing.hGapXS,
+                                Text(
+                                  context.l10n.gymVerified,
+                                  style: AppTextStyles.label.copyWith(
+                                    color: AppColors.secondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    AppSpacing.vGapXS,
 
                     // 评分
-                    if (gym.reviewCount > 0)
+                    if (gym.reviewCount > 0) ...[
                       Row(
                         children: [
                           RatingBar(
-                            rating: gym.rating.round(),
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
+                              rating: gym.rating.round(), size: 18),
+                          AppSpacing.hGapSM,
                           Text(
                             '${gym.ratingDisplay} (${gym.reviewCount})',
                             style: AppTextStyles.caption,
                           ),
                         ],
                       ),
-                    const SizedBox(height: 16),
+                    ],
+                    AppSpacing.vGapMD,
 
-                    // 地址
-                    _buildInfoRow(
-                      Icons.location_on_outlined,
-                      context.l10n.gymAddress,
-                      gym.address,
-                    ),
-
-                    // 电话
+                    // 信息行
+                    _buildInfoRow(context, Icons.location_on_outlined,
+                        context.l10n.gymAddress, gym.address,
+                        isDark: isDark),
                     if (gym.phone != null)
                       _buildInfoRow(
+                        context,
                         Icons.phone_outlined,
                         context.l10n.gymPhone,
                         gym.phone!,
                         onTap: () =>
                             launchUrl(Uri.parse('tel:${gym.phone}')),
+                        isDark: isDark,
                       ),
-
-                    // 网站
                     if (gym.website != null)
                       _buildInfoRow(
+                        context,
                         Icons.language_outlined,
                         context.l10n.gymWebsite,
                         gym.website!,
                         onTap: () =>
                             launchUrl(Uri.parse(gym.website!)),
+                        isDark: isDark,
                       ),
-
-                    // 营业时间
                     if (gym.openingHours != null)
                       _buildInfoRow(
+                        context,
                         Icons.access_time_outlined,
                         context.l10n.gymOpeningHours,
                         gym.openingHours!,
+                        isDark: isDark,
                       ),
-                    const SizedBox(height: 16),
+                    AppSpacing.vGapMD,
 
                     // 运动类型
-                    Text(
-                      context.l10n.gymSportTypes,
-                      style: AppTextStyles.subtitle,
-                    ),
-                    const SizedBox(height: 8),
+                    _SectionLabel(label: context.l10n.gymSportTypes),
+                    AppSpacing.vGapSM,
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
                       children: gym.sportTypes
                           .map((s) => SportTypeIcon(
                                 sportType: s,
@@ -183,7 +202,7 @@ class GymDetailPage extends ConsumerWidget {
                               ))
                           .toList(),
                     ),
-                    const SizedBox(height: 24),
+                    AppSpacing.vGapLG,
 
                     // 馆主认领区域
                     _buildClaimSection(context, ref, gym, claimAsync),
@@ -191,47 +210,53 @@ class GymDetailPage extends ConsumerWidget {
                     // 评价区标题 + 写评价按钮
                     Row(
                       children: [
-                        Text(
-                          context.l10n.gymReviews,
-                          style: AppTextStyles.subtitle,
-                        ),
+                        _SectionLabel(
+                            label: context.l10n.gymReviews),
                         const Spacer(),
                         TextButton.icon(
                           onPressed: () => context.push(
                             '${AppRoutes.gymReview}/$gymId',
                           ),
-                          icon: const Icon(Icons.rate_review_outlined,
+                          icon: const Icon(
+                              Icons.rate_review_outlined,
                               size: 18),
                           label: Text(context.l10n.gymWriteReview),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    AppSpacing.vGapSM,
 
                     // 评价列表
                     reviewsAsync.when(
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
-                      error: (_, __) => Text(context.l10n.commonError),
+                      loading: () => const SkeletonAvatarRow(),
+                      error: (_, __) =>
+                          Text(context.l10n.commonError),
                       data: (reviews) {
                         if (reviews.isEmpty) {
                           return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: AppSpacing.md),
                             child: Center(
                               child: Text(
                                 context.l10n.gymNoReviews,
-                                style: AppTextStyles.caption,
+                                style: AppTextStyles.caption.copyWith(
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.lightTextSecondary,
+                                ),
                               ),
                             ),
                           );
                         }
                         return Column(
                           children: reviews
-                              .map((r) => _buildReviewItem(context, r))
+                              .map((r) => _buildReviewItem(
+                                  context, r, isDark))
                               .toList(),
                         );
                       },
                     ),
+                    AppSpacing.vGapLG,
                   ],
                 ),
               ),
@@ -242,63 +267,61 @@ class GymDetailPage extends ConsumerWidget {
     );
   }
 
-  /// AppBar 收藏按钮
   Widget _buildFavoriteAppBarButton(
-    WidgetRef ref,
-    AsyncValue<bool> favAsync,
-  ) {
+      WidgetRef ref, AsyncValue<bool> favAsync) {
     final isFav = favAsync.valueOrNull ?? false;
     return IconButton(
       onPressed: () =>
           ref.read(gymFavoriteActionProvider).toggle(gymId),
       icon: Icon(
         isFav ? Icons.favorite : Icons.favorite_border,
-        color: isFav ? Colors.redAccent : null,
+        color: isFav ? AppColors.crossfit : null,
       ),
     );
   }
 
-  /// 馆主认领区域
   Widget _buildClaimSection(
     BuildContext context,
     WidgetRef ref,
     dynamic gym,
     AsyncValue claimAsync,
   ) {
-    // 已认证的训练馆不显示认领按钮
     if (gym.isVerified) return const SizedBox.shrink();
 
     final claim = claimAsync.valueOrNull;
 
-    // 已提交过认领
     if (claim != null) {
       return Padding(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: Card(
-          color: AppColors.primary.withValues(alpha: 0.08),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                const Icon(Icons.store_outlined,
-                    size: 20, color: AppColors.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '${context.l10n.gymClaimStatus}: ${claim.statusDisplay}',
-                    style: AppTextStyles.body,
-                  ),
-                ),
-              ],
+        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.x12),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            borderRadius: AppRadius.bMD,
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.2),
+              width: 0.5,
             ),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.store_outlined,
+                  size: 20, color: AppColors.primary),
+              AppSpacing.hGapSM,
+              Expanded(
+                child: Text(
+                  '${context.l10n.gymClaimStatus}: ${claim.statusDisplay}',
+                  style: AppTextStyles.body,
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
 
-    // 未认领 — 显示认领按钮
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: SizedBox(
         width: double.infinity,
         child: OutlinedButton.icon(
@@ -313,7 +336,6 @@ class GymDetailPage extends ConsumerWidget {
     );
   }
 
-  /// 处理认领操作
   Future<void> _handleClaim(BuildContext context, WidgetRef ref) async {
     final confirmed = await ConfirmDialog.show(
       context,
@@ -326,8 +348,7 @@ class GymDetailPage extends ConsumerWidget {
     try {
       await ref.read(gymClaimActionProvider).submit(gymId: gymId);
       if (context.mounted) {
-        ErrorHandler.showSuccess(
-            context, context.l10n.gymClaimSuccess);
+        ErrorHandler.showSuccess(context, context.l10n.gymClaimSuccess);
       }
     } catch (e) {
       if (context.mounted) ErrorHandler.showError(context, e);
@@ -335,25 +356,35 @@ class GymDetailPage extends ConsumerWidget {
   }
 
   Widget _buildInfoRow(
+    BuildContext context,
     IconData icon,
     String label,
     String value, {
     VoidCallback? onTap,
+    required bool isDark,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.x6),
       child: InkWell(
         onTap: onTap,
+        borderRadius: AppRadius.bXS,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, size: 18, color: AppColors.primary),
-            const SizedBox(width: 8),
+            AppSpacing.hGapSM,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: AppTextStyles.caption),
+                  Text(
+                    label,
+                    style: AppTextStyles.caption.copyWith(
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
+                    ),
+                  ),
                   Text(
                     value,
                     style: AppTextStyles.body.copyWith(
@@ -363,63 +394,138 @@ class GymDetailPage extends ConsumerWidget {
                 ],
               ),
             ),
+            if (onTap != null)
+              Icon(
+                Icons.chevron_right,
+                size: 16,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildReviewItem(BuildContext context, GymReviewModel review) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                RatingBar(rating: review.rating, size: 14),
-                const Spacer(),
-                Text(
-                  _formatDate(review.createdAt),
-                  style: AppTextStyles.caption,
-                ),
-              ],
-            ),
-            if (review.content != null && review.content!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(review.content!, style: AppTextStyles.body),
-            ],
-            if (review.photoUrls.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 80,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: review.photoUrls.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: Image.network(
-                        review.photoUrls[index],
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                      ),
-                    );
-                  },
+  Widget _buildReviewItem(
+      BuildContext context, GymReviewModel review, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.x12),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCardHover : AppColors.lightCardHover,
+        borderRadius: AppRadius.bMD,
+        border: Border.all(
+          color: isDark
+              ? AppColors.darkBorder.withValues(alpha: 0.4)
+              : AppColors.lightBorder.withValues(alpha: 0.5),
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              RatingBar(rating: review.rating, size: 14),
+              const Spacer(),
+              Text(
+                _formatDate(review.createdAt),
+                style: AppTextStyles.caption.copyWith(
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary,
                 ),
               ),
             ],
+          ),
+          if (review.content != null &&
+              review.content!.isNotEmpty) ...[
+            AppSpacing.vGapSM,
+            Text(review.content!, style: AppTextStyles.body),
           ],
-        ),
+          if (review.photoUrls.isNotEmpty) ...[
+            AppSpacing.vGapSM,
+            SizedBox(
+              height: 80,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: review.photoUrls.length,
+                separatorBuilder: (_, __) => AppSpacing.hGapSM,
+                itemBuilder: (context, index) {
+                  return ClipRRect(
+                    borderRadius: AppRadius.bXS,
+                    child: Image.network(
+                      review.photoUrls[index],
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+}
+
+// -------------------------------------------------------
+// Section 标签（复用跨页面统一风格）
+// -------------------------------------------------------
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+
+  const _SectionLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Text(
+      label.toUpperCase(),
+      style: AppTextStyles.label.copyWith(
+        color: isDark
+            ? AppColors.darkTextSecondary
+            : AppColors.lightTextSecondary,
+        letterSpacing: 1.2,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+}
+
+// -------------------------------------------------------
+// 图片占位（无图时 + 加载失败）
+// -------------------------------------------------------
+
+class _PhotoPlaceholder extends StatelessWidget {
+  final bool isDark;
+  final double height;
+
+  const _PhotoPlaceholder({required this.isDark, this.height = 200});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      color: isDark
+          ? AppColors.darkCard
+          : AppColors.primary.withValues(alpha: 0.08),
+      child: Center(
+        child: Icon(
+          Icons.fitness_center,
+          size: 48,
+          color: AppColors.primary.withValues(alpha: 0.4),
+        ),
+      ),
+    );
   }
 }

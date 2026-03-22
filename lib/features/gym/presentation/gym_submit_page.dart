@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
@@ -53,11 +55,11 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           children: [
             // 训练馆名称
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -68,11 +70,11 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
                     v == null || v.trim().isEmpty ? '请输入训练馆名称' : null,
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 地址
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _addressController,
                 decoration: InputDecoration(
@@ -83,11 +85,11 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
                     v == null || v.trim().isEmpty ? '请输入地址' : null,
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 城市选择
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: DropdownButtonFormField<String>(
                 initialValue: _city,
                 decoration: const InputDecoration(
@@ -102,22 +104,22 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
                 onChanged: (v) => setState(() => _city = v!),
               ),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 运动类型选择
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: Text(
                 context.l10n.gymSportTypes,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: AppTextStyles.label.copyWith(letterSpacing: 1.0),
               ),
             ),
-            const SizedBox(height: 8),
+            AppSpacing.vGapSM,
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
                 children: AppConstants.sportTypes.map((type) {
                   final isSelected = _selectedSportTypes.contains(type);
                   return FilterChip(
@@ -138,11 +140,11 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
                 }).toList(),
               ),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 电话
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
@@ -152,11 +154,11 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 描述
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _descriptionController,
                 maxLines: 3,
@@ -168,11 +170,11 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 网站
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _websiteController,
                 keyboardType: TextInputType.url,
@@ -182,11 +184,11 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 营业时间
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _openingHoursController,
                 decoration: InputDecoration(
@@ -196,19 +198,19 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 照片
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: Text(
                 context.l10n.workoutPhotos,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: AppTextStyles.label.copyWith(letterSpacing: 1.0),
               ),
             ),
-            const SizedBox(height: 8),
+            AppSpacing.vGapSM,
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: PhotoGrid(
                 pendingFiles: _pendingPhotos,
                 onAdd: _pickPhotos,
@@ -217,11 +219,11 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
                 },
               ),
             ),
-            const SizedBox(height: 32),
+            AppSpacing.vGapXXL,
 
             // 提交按钮
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: FilledButton(
                 onPressed: _isSaving ? null : _submit,
                 style: FilledButton.styleFrom(
@@ -239,7 +241,7 @@ class _GymSubmitPageState extends ConsumerState<GymSubmitPage> {
                     : Text(context.l10n.gymSubmit),
               ),
             ),
-            const SizedBox(height: 32),
+            AppSpacing.vGapXXL,
           ],
         ),
       ),

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
@@ -47,14 +49,17 @@ class _GymReviewPageState extends ConsumerState<GymReviewPage> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [
           // 评分
-          Text(
-            context.l10n.gymRating,
-            style: Theme.of(context).textTheme.titleSmall,
+          Padding(
+            padding: AppSpacing.pageHorizontalPadding,
+            child: Text(
+              context.l10n.gymRating,
+              style: AppTextStyles.label.copyWith(letterSpacing: 1.0),
+            ),
           ),
-          const SizedBox(height: 12),
+          AppSpacing.vGapMD,
           Center(
             child: RatingBar(
               rating: _rating,
@@ -65,53 +70,66 @@ class _GymReviewPageState extends ConsumerState<GymReviewPage> {
               },
             ),
           ),
-          const SizedBox(height: 24),
+          AppSpacing.vGapLG,
 
           // 评价内容
-          TextFormField(
-            controller: _contentController,
-            maxLines: 5,
-            maxLength: 500,
-            decoration: const InputDecoration(
-              hintText: '分享你的训练体验...',
-              border: OutlineInputBorder(),
-              alignLabelWithHint: true,
+          Padding(
+            padding: AppSpacing.pageHorizontalPadding,
+            child: TextFormField(
+              controller: _contentController,
+              maxLines: 5,
+              maxLength: 500,
+              decoration: const InputDecoration(
+                hintText: '分享你的训练体验...',
+                border: OutlineInputBorder(),
+                alignLabelWithHint: true,
+              ),
             ),
           ),
-          const SizedBox(height: 24),
+          AppSpacing.vGapLG,
 
           // 照片
-          Text(
-            context.l10n.workoutPhotos,
-            style: Theme.of(context).textTheme.titleSmall,
+          Padding(
+            padding: AppSpacing.pageHorizontalPadding,
+            child: Text(
+              context.l10n.workoutPhotos,
+              style: AppTextStyles.label.copyWith(letterSpacing: 1.0),
+            ),
           ),
-          const SizedBox(height: 8),
-          PhotoGrid(
-            pendingFiles: _pendingPhotos,
-            onAdd: _pickPhotos,
-            onRemoveFile: (index) {
-              setState(() => _pendingPhotos.removeAt(index));
-            },
+          AppSpacing.vGapSM,
+          Padding(
+            padding: AppSpacing.pageHorizontalPadding,
+            child: PhotoGrid(
+              pendingFiles: _pendingPhotos,
+              onAdd: _pickPhotos,
+              onRemoveFile: (index) {
+                setState(() => _pendingPhotos.removeAt(index));
+              },
+            ),
           ),
-          const SizedBox(height: 32),
+          AppSpacing.vGapXXL,
 
           // 提交按钮
-          FilledButton(
-            onPressed: _isSaving ? null : _submit,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(double.infinity, 52),
+          Padding(
+            padding: AppSpacing.pageHorizontalPadding,
+            child: FilledButton(
+              onPressed: _isSaving ? null : _submit,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 52),
+              ),
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(context.l10n.commonSave),
             ),
-            child: _isSaving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : Text(context.l10n.commonSave),
           ),
+          AppSpacing.vGapXXL,
         ],
       ),
     );

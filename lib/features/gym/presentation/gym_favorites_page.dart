@@ -5,8 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
+import '../../../app/theme/app_radius.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/skeleton.dart';
 import '../../../shared/widgets/sport_type_icon.dart';
 import '../domain/user_gym_favorite_model.dart';
 import '../providers/gym_provider.dart';
@@ -24,7 +27,17 @@ class GymFavoritesPage extends ConsumerWidget {
         title: Text(context.l10n.gymMyFavorites),
       ),
       body: favAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => ListView(
+          padding: AppSpacing.pagePadding,
+          physics: const NeverScrollableScrollPhysics(),
+          children: const [
+            SkeletonAvatarRow(),
+            SizedBox(height: AppSpacing.sm),
+            SkeletonAvatarRow(),
+            SizedBox(height: AppSpacing.sm),
+            SkeletonAvatarRow(),
+          ],
+        ),
         error: (e, _) => EmptyStateWidget(
           icon: Icons.error_outline,
           title: context.l10n.commonError,
@@ -46,6 +59,7 @@ class GymFavoritesPage extends ConsumerWidget {
             onRefresh: () async {
               ref.invalidate(gymFavoritesProvider);
             },
+            color: AppColors.primary,
             child: NotificationListener<ScrollNotification>(
               onNotification: (notification) {
                 if (notification is ScrollEndNotification &&
@@ -55,7 +69,7 @@ class GymFavoritesPage extends ConsumerWidget {
                 return false;
               },
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 itemCount: favorites.length,
                 itemBuilder: (context, index) {
                   return _FavoriteGymCard(
@@ -95,13 +109,25 @@ class _FavoriteGymCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: AppSpacing.cardMargin,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: AppRadius.bLG,
+        border: Border.all(
+          color: isDark
+              ? AppColors.darkBorder.withValues(alpha: 0.5)
+              : AppColors.lightBorder.withValues(alpha: 0.6),
+          width: 0.5,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.bLG,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.cardPaddingCompact,
           child: Row(
             children: [
               // 缩略图
@@ -110,11 +136,11 @@ class _FavoriteGymCard extends StatelessWidget {
                 height: 56,
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.bSM,
                 ),
                 child: favorite.gymPhotoUrls.isNotEmpty
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: AppRadius.bSM,
                         child: Image.network(
                           favorite.gymPhotoUrls.first,
                           fit: BoxFit.cover,
@@ -129,7 +155,7 @@ class _FavoriteGymCard extends StatelessWidget {
                         color: AppColors.primary,
                       ),
               ),
-              const SizedBox(width: 12),
+              AppSpacing.hGap12,
 
               // 信息
               Expanded(
@@ -142,26 +168,26 @@ class _FavoriteGymCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    AppSpacing.vGapXS,
                     if (favorite.gymAddress != null)
                       Text(
                         favorite.gymAddress!,
                         style: AppTextStyles.caption.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.6),
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.lightTextSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    const SizedBox(height: 6),
+                    AppSpacing.vGapSM,
                     // 运动类型 + 评分
                     Row(
                       children: [
                         ...favorite.gymSportTypes.take(3).map(
                               (s) => Padding(
-                                padding: const EdgeInsets.only(right: 4),
+                                padding:
+                                    const EdgeInsets.only(right: AppSpacing.xs),
                                 child: SportTypeIcon(sportType: s, size: 18),
                               ),
                             ),
@@ -176,7 +202,7 @@ class _FavoriteGymCard extends StatelessWidget {
                             favorite.gymReviewCount! > 0) ...[
                           const Icon(Icons.star,
                               size: 14, color: AppColors.accent),
-                          const SizedBox(width: 2),
+                          AppSpacing.hGapXS,
                           Text(
                             favorite.gymRating!.toStringAsFixed(1),
                             style: AppTextStyles.caption,
@@ -187,17 +213,17 @@ class _FavoriteGymCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 4),
+              AppSpacing.hGapXS,
 
               // 取消收藏按钮
               GestureDetector(
                 onTap: onRemove,
                 child: const Padding(
-                  padding: EdgeInsets.all(4),
+                  padding: EdgeInsets.all(AppSpacing.xs),
                   child: Icon(
                     Icons.favorite,
                     size: 22,
-                    color: Colors.redAccent,
+                    color: AppColors.crossfit,
                   ),
                 ),
               ),

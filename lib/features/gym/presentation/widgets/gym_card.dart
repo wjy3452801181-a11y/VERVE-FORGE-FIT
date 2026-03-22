@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_radius.dart';
 import '../../../../shared/widgets/sport_type_icon.dart';
 import '../../domain/gym_model.dart';
 import '../../providers/gym_provider.dart';
@@ -20,15 +22,26 @@ class GymCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final favAsync = ref.watch(gymFavoriteStatusProvider(gym.id));
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    return Container(
+      margin: AppSpacing.cardMargin,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: AppRadius.bLG,
+        border: Border.all(
+          color: isDark
+              ? AppColors.darkBorder.withValues(alpha: 0.5)
+              : AppColors.lightBorder.withValues(alpha: 0.6),
+          width: 0.5,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.bLG,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.cardPaddingCompact,
           child: Row(
             children: [
               // 照片缩略图或默认图标
@@ -37,11 +50,11 @@ class GymCard extends ConsumerWidget {
                 height: 64,
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.bSM,
                 ),
                 child: gym.photoUrls.isNotEmpty
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: AppRadius.bSM,
                         child: Image.network(
                           gym.photoUrls.first,
                           fit: BoxFit.cover,
@@ -56,7 +69,8 @@ class GymCard extends ConsumerWidget {
                         color: AppColors.primary,
                       ),
               ),
-              const SizedBox(width: 12),
+              AppSpacing.hGap12,
+
               // 信息区域
               Expanded(
                 child: Column(
@@ -75,7 +89,8 @@ class GymCard extends ConsumerWidget {
                         ),
                         if (gym.isVerified)
                           const Padding(
-                            padding: EdgeInsets.only(left: 4),
+                            padding:
+                                EdgeInsets.only(left: AppSpacing.xs),
                             child: Icon(
                               Icons.verified,
                               size: 16,
@@ -84,27 +99,28 @@ class GymCard extends ConsumerWidget {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    AppSpacing.vGapXS,
+
                     // 地址
                     Text(
                       gym.address,
                       style: AppTextStyles.caption.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.6),
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
+                    AppSpacing.vGapSM,
+
                     // 运动类型 + 评分 + 距离
                     Row(
                       children: [
-                        // 运动类型图标
                         ...gym.sportTypes.take(3).map(
                               (s) => Padding(
-                                padding: const EdgeInsets.only(right: 4),
+                                padding:
+                                    const EdgeInsets.only(right: AppSpacing.xs),
                                 child: SportTypeIcon(sportType: s, size: 20),
                               ),
                             ),
@@ -114,14 +130,14 @@ class GymCard extends ConsumerWidget {
                             style: AppTextStyles.caption,
                           ),
                         const Spacer(),
-                        // 评分
                         if (gym.reviewCount > 0) ...[
-                          const Icon(Icons.star, size: 14, color: AppColors.accent),
-                          const SizedBox(width: 2),
-                          Text(gym.ratingDisplay, style: AppTextStyles.caption),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.star,
+                              size: 14, color: AppColors.accent),
+                          AppSpacing.hGapXS,
+                          Text(gym.ratingDisplay,
+                              style: AppTextStyles.caption),
+                          AppSpacing.hGapSM,
                         ],
-                        // 距离
                         if (gym.distanceKm != null)
                           Text(
                             gym.distanceDisplay,
@@ -134,7 +150,8 @@ class GymCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 4),
+              AppSpacing.hGapXS,
+
               // 收藏按钮
               _buildFavoriteButton(ref, favAsync),
             ],
@@ -144,22 +161,17 @@ class GymCard extends ConsumerWidget {
     );
   }
 
-  /// 心形收藏按钮
-  Widget _buildFavoriteButton(
-    WidgetRef ref,
-    AsyncValue<bool> favAsync,
-  ) {
+  Widget _buildFavoriteButton(WidgetRef ref, AsyncValue<bool> favAsync) {
     final isFav = favAsync.valueOrNull ?? false;
-
     return GestureDetector(
       onTap: () => ref.read(gymFavoriteActionProvider).toggle(gym.id),
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(AppSpacing.xs),
         child: Icon(
           isFav ? Icons.favorite : Icons.favorite_border,
           size: 22,
           color: isFav
-              ? Colors.redAccent
+              ? AppColors.crossfit
               : AppColors.primary.withValues(alpha: 0.4),
         ),
       ),
