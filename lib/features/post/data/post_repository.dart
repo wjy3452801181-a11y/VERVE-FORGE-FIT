@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/constants/supabase_constants.dart';
+import '../../../core/errors/app_exception.dart';
 import '../../../core/network/supabase_client.dart';
 import '../../../core/utils/image_utils.dart';
 import '../domain/post_model.dart';
@@ -123,7 +124,8 @@ class PostRepository {
     List<String> imageUrls = const [],
     String? workoutId,
   }) async {
-    final userId = SupabaseClientHelper.currentUserId!;
+    final userId = SupabaseClientHelper.currentUserId;
+    if (userId == null) throw const AppAuthException(message: '用户未登录');
     final id = _uuid.v4();
     final now = DateTime.now();
 
@@ -169,7 +171,8 @@ class PostRepository {
 
   /// 切换点赞状态，返回操作后状态：true = 已赞
   Future<bool> toggleLike(String postId) async {
-    final userId = SupabaseClientHelper.currentUserId!;
+    final userId = SupabaseClientHelper.currentUserId;
+    if (userId == null) throw const AppAuthException(message: '用户未登录');
 
     final existing =
         await SupabaseClientHelper.from(SupabaseConstants.postLikes)
@@ -235,7 +238,8 @@ class PostRepository {
     required String content,
     String? parentId,
   }) async {
-    final userId = SupabaseClientHelper.currentUserId!;
+    final userId = SupabaseClientHelper.currentUserId;
+    if (userId == null) throw const AppAuthException(message: '用户未登录');
     final id = _uuid.v4();
     final now = DateTime.now();
 

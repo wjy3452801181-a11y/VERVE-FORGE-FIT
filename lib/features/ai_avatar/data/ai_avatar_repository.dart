@@ -230,16 +230,19 @@ class AiAvatarRepository {
       );
 
       if (response.status == 429) {
-        throw const AppException(message: '429');
+        throw const RateLimitException();
       }
 
       if (response.status != 200) {
         throw AppException(message: '分享失败: ${response.status}');
       }
 
-      final data = response.data as Map<String, dynamic>;
+      final raw = response.data;
+      if (raw is! Map<String, dynamic>) {
+        throw const AppException(message: '分享接口返回格式异常');
+      }
       _log.i('分身分享成功: $avatarId → $targetType');
-      return data['share_link'] as String?;
+      return raw['share_link'] as String?;
     } catch (e) {
       _log.e('分身分享失败', error: e);
       rethrow;

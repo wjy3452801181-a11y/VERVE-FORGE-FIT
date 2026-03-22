@@ -45,8 +45,11 @@ class CurrentProfileNotifier extends AsyncNotifier<ProfileModel?> {
 }
 
 /// 是否已完成引导流
-final isOnboardingCompleteProvider = Provider<bool>((ref) {
+/// 返回三态：true=完成，false=未完成，null=仍在加载中
+final isOnboardingCompleteProvider = Provider<bool?>((ref) {
   final profileAsync = ref.watch(currentProfileProvider);
+  // 加载中时返回 null，让 router redirect 不做跳转，避免闪屏
+  if (profileAsync.isLoading) return null;
   return profileAsync.valueOrNull?.isOnboardingComplete ?? false;
 });
 

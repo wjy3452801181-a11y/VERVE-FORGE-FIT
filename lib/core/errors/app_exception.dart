@@ -52,3 +52,12 @@ class ValidationException extends AppException {
     super.originalError,
   });
 }
+
+/// 频率限制异常（HTTP 429）
+class RateLimitException extends AppException {
+  const RateLimitException({
+    super.message = '操作过于频繁，请稍后重试',
+    super.code = '429',
+    super.originalError,
+  });
+}

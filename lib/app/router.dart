@@ -107,6 +107,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = authState.valueOrNull != null;
       final isLoginRoute = state.matchedLocation == AppRoutes.login;
       final isOnboardingRoute = state.matchedLocation == AppRoutes.onboarding;
+      // null = profile 仍在加载，此时不跳转，等待下一次 rebuild
       final isOnboardingComplete = ref.read(isOnboardingCompleteProvider);
 
       // 未登录 → 跳转登录页
@@ -114,18 +115,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         return AppRoutes.login;
       }
 
-      // 已登录但在登录页 → 检查引导流
+      // 已登录但在登录页 → 检查引导流（仍在加载则等待）
       if (isLoggedIn && isLoginRoute) {
+        if (isOnboardingComplete == null) return null;
         return isOnboardingComplete ? AppRoutes.home : AppRoutes.onboarding;
       }
 
-      // 已登录 + 未完成引导 → 强制跳转引导页
-      if (isLoggedIn && !isOnboardingComplete && !isOnboardingRoute) {
+      // 已登录 + 未完成引导 → 强制跳转引导页（加载中不跳）
+      if (isLoggedIn && isOnboardingComplete == false && !isOnboardingRoute) {
         return AppRoutes.onboarding;
       }
 
       // 已登录 + 已完成引导 + 在引导页 → 跳转首页
-      if (isLoggedIn && isOnboardingComplete && isOnboardingRoute) {
+      if (isLoggedIn && isOnboardingComplete == true && isOnboardingRoute) {
         return AppRoutes.home;
       }
 
