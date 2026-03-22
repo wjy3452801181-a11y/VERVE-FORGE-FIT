@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../domain/ai_avatar_model.dart';
@@ -74,12 +75,12 @@ class AiAvatarSharedView extends ConsumerWidget {
         children: [
           Icon(Icons.link_off_rounded,
               size: 56, color: Colors.grey.shade400),
-          const SizedBox(height: 16),
+          AppSpacing.vGapMD,
           Text(
             context.l10n.aiShareNotFound,
             style: AppTextStyles.subtitle,
           ),
-          const SizedBox(height: 8),
+          AppSpacing.vGapSM,
           Text(
             context.l10n.aiShareNotFoundDesc,
             style: AppTextStyles.caption,
@@ -129,9 +130,9 @@ class AiAvatarSharedView extends ConsumerWidget {
     };
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: AppSpacing.cardPadding,
       children: [
-        const SizedBox(height: 20),
+        AppSpacing.vGap20,
 
         // 分身头像（大尺寸居中）
         Center(
@@ -158,7 +159,7 @@ class AiAvatarSharedView extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        AppSpacing.vGapMD,
 
         // 分身名称
         Center(
@@ -167,7 +168,7 @@ class AiAvatarSharedView extends ConsumerWidget {
             style: AppTextStyles.subtitle.copyWith(fontSize: 22),
           ),
         ),
-        const SizedBox(height: 6),
+        AppSpacing.vGap6,
 
         // 主人信息
         Center(
@@ -180,7 +181,7 @@ class AiAvatarSharedView extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        AppSpacing.vGapLG,
 
         // 性格标签
         if (traits.isNotEmpty)
@@ -193,10 +194,10 @@ class AiAvatarSharedView extends ConsumerWidget {
                   context.l10n.aiAvatarStepPersonality,
                   style: AppTextStyles.caption,
                 ),
-                const SizedBox(height: 8),
+                AppSpacing.vGapSM,
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
                   children: traits.map((trait) {
                     return PersonalityChip(
                       trait: trait,
@@ -209,7 +210,7 @@ class AiAvatarSharedView extends ConsumerWidget {
             ),
           ),
 
-        if (traits.isNotEmpty) const SizedBox(height: 12),
+        if (traits.isNotEmpty) AppSpacing.vGap12,
 
         // 说话风格
         _buildGlassCard(
@@ -228,7 +229,7 @@ class AiAvatarSharedView extends ConsumerWidget {
                       size: 18, color: AppColors.info),
                 ),
               ),
-              const SizedBox(width: 12),
+              AppSpacing.hGap12,
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -245,17 +246,17 @@ class AiAvatarSharedView extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: 32),
+        AppSpacing.vGapXL,
 
         // 聊天入口按钮
         ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.md),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppSpacing.md),
                 gradient: const LinearGradient(
                   colors: [AppColors.info, Color(0xFF64B5F6)],
                   begin: Alignment.topLeft,
@@ -278,7 +279,7 @@ class AiAvatarSharedView extends ConsumerWidget {
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppSpacing.md),
                   onTap: () {
                     // 跳转到分身聊天页（携带 avatarId）
                     if (avatarId != null) {
@@ -289,13 +290,13 @@ class AiAvatarSharedView extends ConsumerWidget {
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 16),
+                        horizontal: AppSpacing.x20, vertical: AppSpacing.md),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(Icons.chat_rounded,
                             color: Colors.white, size: 20),
-                        const SizedBox(width: 10),
+                        AppSpacing.hGap10,
                         Text(
                           context.l10n.aiChatStartChat,
                           style: const TextStyle(
@@ -323,16 +324,16 @@ class AiAvatarSharedView extends ConsumerWidget {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppSpacing.md),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.cardPaddingCompact,
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.06)
                 : Colors.white.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.md),
             border: Border.all(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.1)

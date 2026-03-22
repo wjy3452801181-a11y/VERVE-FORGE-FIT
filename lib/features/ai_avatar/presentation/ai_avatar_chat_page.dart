@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../domain/ai_avatar_model.dart';
@@ -147,7 +148,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
           children: [
             // AppBar 中的迷你头像
             _buildMiniAvatar(avatar, avatarEmoji, size: 32),
-            const SizedBox(width: 10),
+            AppSpacing.hGap10,
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -233,7 +234,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   Widget _buildDisclaimer(bool isDark) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.x6),
       decoration: BoxDecoration(
         color: isDark
             ? AppColors.info.withValues(alpha: 0.08)
@@ -253,7 +254,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
             size: 12,
             color: AppColors.info.withValues(alpha: 0.6),
           ),
-          const SizedBox(width: 4),
+          AppSpacing.hGapXS,
           Text(
             context.l10n.aiChatDisclaimer,
             style: TextStyle(
@@ -273,7 +274,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   Widget _buildAutoReplyBanner(bool isDark) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -314,13 +315,13 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
               );
             },
           ),
-          const SizedBox(width: 8),
+          AppSpacing.hGapSM,
           const Icon(
             Icons.smart_toy_outlined,
             size: 14,
             color: AppColors.info,
           ),
-          const SizedBox(width: 6),
+          AppSpacing.hGapXS,
           Expanded(
             child: Text(
               context.l10n.aiAutoReplyActive,
@@ -370,12 +371,12 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          AppSpacing.vGap20,
           Text(
             context.l10n.aiChatNoMessages,
             style: AppTextStyles.subtitle,
           ),
-          const SizedBox(height: 8),
+          AppSpacing.vGapSM,
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 48),
             child: Text(
@@ -386,7 +387,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 24),
+          AppSpacing.vGapLG,
 
           // 渐变进度条 + 学习提示
           Padding(
@@ -415,7 +416,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                AppSpacing.vGap10,
                 Text(
                   context.l10n.aiChatEmptyLearning,
                   style: AppTextStyles.caption.copyWith(
@@ -448,7 +449,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
           _onScrollNotification(notification),
       child: ListView.builder(
         controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         itemCount: messages.length +
             (_isSending ? 1 : 0) +
             (isLoadingHistory ? 1 : 0),
@@ -520,7 +521,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   // ============================================================
   Widget _buildUserBubble(ChatMessage message) {
     return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 6, left: 48),
+      padding: const EdgeInsets.only(top: AppSpacing.x6, bottom: AppSpacing.x6, left: 48),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -529,7 +530,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
             child: GestureDetector(
               onLongPress: () => _copyMessage(message.content),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.x10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [AppColors.primary, Color(0xFFFF8A5C)],
@@ -586,13 +587,13 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
     );
 
     return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 6, right: 48),
+      padding: const EdgeInsets.only(top: AppSpacing.x6, bottom: AppSpacing.x6, right: 48),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // AI 头像
           _buildMiniAvatar(avatar, avatarEmoji, size: 36),
-          const SizedBox(width: 10),
+          AppSpacing.hGap10,
 
           // 消息体
           Flexible(
@@ -676,10 +677,10 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 32),
       child: Center(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           decoration: BoxDecoration(
             color: Colors.grey.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppSpacing.x12),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -689,7 +690,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
                 size: 14,
                 color: Colors.grey[500],
               ),
-              const SizedBox(width: 6),
+              AppSpacing.hGapXS,
               Flexible(
                 child: Text(
                   context.l10n.aiReplyFilteredHint,
@@ -720,7 +721,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
     );
 
     return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 6, right: 48),
+      padding: const EdgeInsets.only(top: AppSpacing.x6, bottom: AppSpacing.x6, right: 48),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -729,10 +730,10 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
             avatarEmoji,
             size: 36,
           ),
-          const SizedBox(width: 10),
+          AppSpacing.hGap10,
           Container(
             padding:
-                const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                const EdgeInsets.symmetric(horizontal: 18, vertical: AppSpacing.x12),
             decoration: BoxDecoration(
               color: context.colorScheme.surfaceContainerHighest,
               borderRadius: thinkingRadius,
@@ -745,11 +746,11 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildDot(0),
-                const SizedBox(width: 4),
+                AppSpacing.hGapXS,
                 _buildDot(1),
-                const SizedBox(width: 4),
+                AppSpacing.hGapXS,
                 _buildDot(2),
-                const SizedBox(width: 8),
+                AppSpacing.hGapSM,
                 // 动态文字轮播
                 _DynamicThinkingText(texts: _thinkingTexts()),
               ],
@@ -791,7 +792,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   Widget _buildQuickPhrases() {
     return Container(
       height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x12),
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
@@ -896,7 +897,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x12, vertical: AppSpacing.sm),
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.black.withValues(alpha: 0.4)
@@ -978,7 +979,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              AppSpacing.hGapSM,
 
               // 【性能优化 9】发送按钮使用 ValueListenableBuilder
               // 仅在输入内容变化时 rebuild 此按钮，不触发整页 setState
@@ -1147,7 +1148,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
           children: [
             const Icon(Icons.psychology_outlined,
                 size: 16, color: Colors.white),
-            const SizedBox(width: 8),
+            AppSpacing.hGapSM,
             Expanded(
               child: Text(context.l10n.aiProfileUpdateHint),
             ),
@@ -1157,7 +1158,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.info.withValues(alpha: 0.9),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppSpacing.x10),
         ),
       ),
     );
@@ -1183,7 +1184,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
         content: Row(
           children: [
             const Icon(Icons.check_circle_outline, size: 16, color: Colors.white),
-            const SizedBox(width: 8),
+            AppSpacing.hGapSM,
             Text(context.l10n.aiChatCopied),
           ],
         ),
@@ -1191,7 +1192,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.secondary.withValues(alpha: 0.9),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppSpacing.x10),
         ),
       ),
     );
@@ -1417,7 +1418,7 @@ class _ChatSkeletonList extends StatelessWidget {
       highlightColor:
           isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F5F5),
       child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         child: Column(
           children: [
             // 模拟 5 条交替气泡
@@ -1460,7 +1461,7 @@ class _ChatBubbleSkeleton extends StatelessWidget {
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 10),
+          AppSpacing.hGap10,
         ],
         // 气泡占位
         Container(

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
@@ -101,11 +102,11 @@ class AiAvatarDetailPage extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.smart_toy_outlined, size: 64, color: Colors.grey.shade400),
-          const SizedBox(height: 16),
+          AppSpacing.vGapMD,
           Text(context.l10n.aiAvatarEmpty, style: AppTextStyles.subtitle),
-          const SizedBox(height: 8),
+          AppSpacing.vGapSM,
           Text(context.l10n.aiAvatarEmptyTip, style: AppTextStyles.caption),
-          const SizedBox(height: 24),
+          AppSpacing.vGapLG,
           FilledButton.icon(
             onPressed: () => context.push(AppRoutes.aiAvatarCreate),
             icon: const Icon(Icons.add),
@@ -123,7 +124,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
     final avatarEmoji = _resolveAvatarEmoji(avatar);
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.cardPaddingCompact,
       children: [
         // ===== 头像 + 名称卡片 =====
         _buildGlassCard(
@@ -156,13 +157,13 @@ class AiAvatarDetailPage extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              AppSpacing.hGapMD,
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(avatar.name, style: AppTextStyles.subtitle),
-                    const SizedBox(height: 4),
+                    AppSpacing.vGapXS,
                     Text(
                       context.l10n.aiGeneratedLabel,
                       style: AppTextStyles.caption.copyWith(
@@ -181,7 +182,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        AppSpacing.vGap12,
 
         // ===== 立即聊天 — 显眼的 CTA 按钮 =====
         _buildGlassCard(
@@ -190,9 +191,9 @@ class AiAvatarDetailPage extends ConsumerWidget {
             onTap: () => context.push(
               '${AppRoutes.aiAvatarChat}/${avatar.id}',
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppSpacing.x12),
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 6),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.x6),
               child: Row(
                 children: [
                   // 蓝色发光图标
@@ -219,7 +220,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                           color: Colors.white, size: 22),
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  AppSpacing.hGap14,
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,11 +251,11 @@ class AiAvatarDetailPage extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        AppSpacing.vGap12,
 
         // ===== 分享我的分身 — 蓝色渐变 CTA =====
         _buildShareCTA(context, avatar),
-        const SizedBox(height: 12),
+        AppSpacing.vGap12,
 
         // ===== 性格标签 =====
         if (avatar.personalityTraits.isNotEmpty) ...[
@@ -265,10 +266,10 @@ class AiAvatarDetailPage extends ConsumerWidget {
               children: [
                 Text(context.l10n.aiAvatarStepPersonality,
                     style: AppTextStyles.caption),
-                const SizedBox(height: 8),
+                AppSpacing.vGapSM,
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
                   children: avatar.personalityTraits.map((trait) {
                     return PersonalityChip(
                       trait: trait,
@@ -280,7 +281,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          AppSpacing.vGap12,
         ],
 
         // ===== AI 画像信息卡片（只读展示，更新由底部按钮触发） =====
@@ -304,7 +305,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                           size: 20, color: AppColors.secondary),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  AppSpacing.hGap12,
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,7 +314,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                           context.l10n.aiProfileUpdate,
                           style: AppTextStyles.subtitle,
                         ),
-                        const SizedBox(height: 2),
+                        AppSpacing.vGapXS,
                         Text(
                           _formatLastUpdated(
                               context, avatar.profileUpdatedAt),
@@ -329,13 +330,13 @@ class AiAvatarDetailPage extends ConsumerWidget {
               // 运动习惯摘要（如果有）
               if (avatar.fitnessHabits.isNotEmpty &&
                   avatar.fitnessHabits['summary'] != null) ...[
-                const SizedBox(height: 10),
+                AppSpacing.vGap10,
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.x12, vertical: AppSpacing.sm),
                   decoration: BoxDecoration(
                     color: AppColors.secondary.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppSpacing.sm),
                     border: Border.all(
                       color: AppColors.secondary.withValues(alpha: 0.12),
                       width: 0.5,
@@ -348,7 +349,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                         size: 14,
                         color: AppColors.secondary.withValues(alpha: 0.7),
                       ),
-                      const SizedBox(width: 6),
+                      AppSpacing.hGapXS,
                       Expanded(
                         child: Text(
                           avatar.fitnessHabits['summary'] as String,
@@ -366,7 +367,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        AppSpacing.vGap12,
 
         // ===== 自动回复开关（增强版） =====
         _buildGlassCard(
@@ -397,7 +398,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                           : null,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  AppSpacing.hGap10,
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,7 +407,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                           context.l10n.aiAutoReply,
                           style: AppTextStyles.subtitle,
                         ),
-                        const SizedBox(height: 2),
+                        AppSpacing.vGapXS,
                         Text(
                           avatar.autoReplyEnabled
                               ? context.l10n.aiAutoReplyStatusOn
@@ -457,13 +458,13 @@ class AiAvatarDetailPage extends ConsumerWidget {
               ),
               // 自动回复开启时显示额外提示
               if (avatar.autoReplyEnabled) ...[
-                const SizedBox(height: 8),
+                AppSpacing.vGapSM,
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
+                      horizontal: AppSpacing.x12, vertical: AppSpacing.sm),
                   decoration: BoxDecoration(
                     color: AppColors.info.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppSpacing.sm),
                     border: Border.all(
                       color: AppColors.info.withValues(alpha: 0.12),
                       width: 0.5,
@@ -476,7 +477,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                         size: 14,
                         color: AppColors.info.withValues(alpha: 0.7),
                       ),
-                      const SizedBox(width: 6),
+                      AppSpacing.hGapXS,
                       Expanded(
                         child: Text(
                           context.l10n.aiAutoReplyDesc,
@@ -493,11 +494,11 @@ class AiAvatarDetailPage extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        AppSpacing.vGap20,
 
         // ===== 底部 CTA：更新我的画像 — 蓝色渐变按钮 =====
         _buildUpdateProfileCTA(context, ref, avatar),
-        const SizedBox(height: 24),
+        AppSpacing.vGapLG,
       ],
     );
   }
@@ -507,13 +508,13 @@ class AiAvatarDetailPage extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppSpacing.md),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.md),
             gradient: const LinearGradient(
               colors: [Color(0xFF1E88E5), Color(0xFF42A5F5)],
               begin: Alignment.centerLeft,
@@ -536,17 +537,17 @@ class AiAvatarDetailPage extends ConsumerWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppSpacing.md),
               onTap: () => AiAvatarShareSheet.show(context, avatar),
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.x20, vertical: AppSpacing.x14),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.share_rounded,
                         color: Colors.white, size: 20),
-                    const SizedBox(width: 10),
+                    AppSpacing.hGap10,
                     Text(
                       context.l10n.aiShareBtn,
                       style: const TextStyle(
@@ -572,13 +573,13 @@ class AiAvatarDetailPage extends ConsumerWidget {
     final isUpdating = ref.watch(isUpdatingProfileProvider);
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppSpacing.md),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.md),
             gradient: isUpdating
                 ? LinearGradient(
                     colors: [
@@ -610,13 +611,13 @@ class AiAvatarDetailPage extends ConsumerWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppSpacing.md),
               onTap: isUpdating
                   ? null
                   : () => _showUpdateConfirmDialog(context, ref, avatar),
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.x20, vertical: AppSpacing.md),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -629,7 +630,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      AppSpacing.hGap10,
                       Text(
                         context.l10n.aiProfileUpdating,
                         style: const TextStyle(
@@ -641,7 +642,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                     ] else ...[
                       const Icon(Icons.auto_awesome_rounded,
                           color: Colors.white, size: 20),
-                      const SizedBox(width: 10),
+                      AppSpacing.hGap10,
                       Text(
                         context.l10n.aiProfileManualUpdateBtn,
                         style: const TextStyle(
@@ -670,12 +671,12 @@ class AiAvatarDetailPage extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDark ? const Color(0xFF1A1A2E) : null,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.md)),
         title: Row(
           children: [
             const Icon(Icons.psychology_outlined,
                 color: AppColors.info, size: 24),
-            const SizedBox(width: 10),
+            AppSpacing.hGap10,
             Expanded(
               child: Text(
                 context.l10n.aiProfileUpdateConfirmTitle,
@@ -740,16 +741,16 @@ class AiAvatarDetailPage extends ConsumerWidget {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppSpacing.md),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.cardPaddingCompact,
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.06)
                 : Colors.white.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.md),
             border: Border.all(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.1)

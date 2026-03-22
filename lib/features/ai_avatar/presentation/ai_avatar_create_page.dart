@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
@@ -132,7 +133,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
       context.l10n.aiAvatarStepName,
     ];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
       child: Row(
         children: List.generate(steps.length * 2 - 1, (i) {
           // 奇数位 → 连线
@@ -141,7 +142,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
             return Expanded(
               child: Container(
                 height: 2,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(1),
                   color: stepBefore < _currentStep
@@ -190,7 +191,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
                   ),
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 steps[stepIndex],
                 style: AppTextStyles.label.copyWith(
@@ -212,11 +213,11 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
   // ============================================================
   Widget _buildStep1Appearance() {
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       children: [
         // 选中的头像预览
         Center(child: _buildSelectedAvatarPreview()),
-        const SizedBox(height: 20),
+        AppSpacing.vGap20,
 
         // 预设头像网格（玻璃拟态卡片）
         _buildGlassCard(
@@ -227,14 +228,14 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
                 context.l10n.aiAvatarPickPreset,
                 style: AppTextStyles.subtitle,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.x12),
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 6,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
+                  mainAxisSpacing: AppSpacing.sm,
+                  crossAxisSpacing: AppSpacing.sm,
                   childAspectRatio: 1,
                 ),
                 itemCount: AiAvatarModel.presetAvatars.length,
@@ -248,15 +249,15 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.x12),
 
         // 自定义上传入口
         _buildGlassCard(
           child: InkWell(
             onTap: _pickImage,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppSpacing.x12),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
               child: Row(
                 children: [
                   const Icon(
@@ -264,7 +265,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
                     color: AppColors.primary,
                     size: 24,
                   ),
-                  const SizedBox(width: 12),
+                  AppSpacing.hGap12,
                   Text(
                     context.l10n.aiAvatarOrUpload,
                     style: AppTextStyles.body.copyWith(
@@ -281,7 +282,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        AppSpacing.vGapLG,
       ],
     );
   }
@@ -348,7 +349,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
           color: isSelected
               ? AppColors.primary.withValues(alpha: 0.2)
               : context.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppSpacing.x12),
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.transparent,
             width: 2,
@@ -369,7 +370,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
   // ============================================================
   Widget _buildStep2Personality() {
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       children: [
         _buildGlassCard(
           child: Column(
@@ -379,17 +380,17 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
                 context.l10n.aiAvatarStepPersonality,
                 style: AppTextStyles.h3,
               ),
-              const SizedBox(height: 4),
+              AppSpacing.vGapXS,
               Text(
                 context.l10n.aiAvatarSelectTraitsHint,
                 style: AppTextStyles.caption.copyWith(
                   color: context.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 16),
+              AppSpacing.vGapMD,
               Wrap(
-                spacing: 8,
-                runSpacing: 10,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.x10,
                 children: AiAvatarModel.availableTraits.map((trait) {
                   final isSelected = _selectedTraits.contains(trait);
                   return PersonalityChip(
@@ -410,12 +411,12 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.x12),
 
         // 已选计数
         if (_selectedTraits.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
             child: Text(
               '${_selectedTraits.length}/5',
               style: AppTextStyles.caption.copyWith(
@@ -434,7 +435,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
   // ============================================================
   Widget _buildStep3NameAndStyle() {
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       children: [
         // 名称输入
         _buildGlassCard(
@@ -450,7 +451,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        AppSpacing.vGap12,
 
         // 说话风格选择器（含实时预览气泡）
         _buildGlassCard(
@@ -461,7 +462,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
                 context.l10n.aiAvatarPreviewTitle,
                 style: AppTextStyles.subtitle,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.x12),
               StyleSelector(
                 selectedStyle: _selectedStyle,
                 onChanged: (style) {
@@ -471,7 +472,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        AppSpacing.vGap12,
 
         // 自定义指令
         _buildGlassCard(
@@ -488,7 +489,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        AppSpacing.vGapLG,
       ],
     );
   }
@@ -498,7 +499,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
   // ============================================================
   Widget _buildBottomButtons() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.x12),
       child: Row(
         children: [
           // 上一步按钮
@@ -516,7 +517,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
                 ),
               ),
             ),
-          if (_currentStep > 0) const SizedBox(width: 12),
+          if (_currentStep > 0) AppSpacing.hGap12,
 
           // 下一步 / 创建按钮
           Expanded(
@@ -548,7 +549,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
                           style: AppTextStyles.button,
                         ),
                         if (_currentStep < 2) ...[
-                          const SizedBox(width: 4),
+                          AppSpacing.hGapXS,
                           const Icon(Icons.arrow_forward_rounded, size: 18),
                         ],
                       ],
@@ -566,16 +567,16 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
   Widget _buildGlassCard({required Widget child}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppSpacing.md),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.cardPaddingCompact,
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.06)
                 : Colors.white.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.md),
             border: Border.all(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.1)
