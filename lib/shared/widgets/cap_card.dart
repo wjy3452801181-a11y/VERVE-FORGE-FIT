@@ -3,6 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
+import '../../app/theme/app_radius.dart';
+import '../../app/theme/app_spacing.dart';
+import '../../app/theme/app_shadows.dart';
+import '../../app/theme/app_animations.dart';
 
 /// CapCard 卡片类型
 enum CapCardType {
@@ -79,14 +83,14 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _animController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: AppAnimations.premium,
       vsync: this,
     );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 1.015).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+    _scaleAnim = AppAnimations.cardHoverScale.animate(
+      AppAnimations.premiumHover(_animController),
     );
     _glowAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+      AppAnimations.premiumHover(_animController),
     );
   }
 
@@ -124,12 +128,11 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
             child: GestureDetector(
               onTap: widget.onTap,
               child: Container(
-                margin: widget.margin ??
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                margin: widget.margin ?? AppSpacing.cardMargin,
                 decoration: _buildDecoration(),
                 child: widget.enableGlassmorphism
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: AppRadius.bLG,
                         child: BackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                           child: _buildCardContent(),
@@ -148,7 +151,7 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
     final glowIntensity = _glowAnim.value;
 
     return BoxDecoration(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: AppRadius.bLG,
       // 背景：径向渐变
       gradient: RadialGradient(
         center: Alignment.topLeft,
@@ -216,7 +219,7 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
   // ========================
   Widget _buildStandardCard() {
     return Container(
-      padding: widget.padding ?? const EdgeInsets.all(20),
+      padding: widget.padding ?? AppSpacing.cardPadding,
       child: widget.child,
     );
   }
@@ -230,7 +233,7 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
     final progress = total > 0 ? step / total : 0.0;
 
     return Container(
-      padding: widget.padding ?? const EdgeInsets.all(20),
+      padding: widget.padding ?? AppSpacing.cardPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -249,7 +252,7 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: AppRadius.stepBadge,
                 ),
                 child: Center(
                   child: Text(
@@ -263,7 +266,7 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              AppSpacing.hGap12,
               Text(
                 'Step $step of $total',
                 style: TextStyle(
@@ -277,20 +280,20 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          AppSpacing.vGapMD,
           // 内容
           widget.child,
-          const SizedBox(height: 16),
+          AppSpacing.vGapMD,
           // 进度条 — 浅→深渐变
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: AppRadius.bXS,
             child: Container(
               height: 4,
               decoration: BoxDecoration(
                 color: _isDark
                     ? AppColors.darkDivider
                     : AppColors.lightDivider,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: AppRadius.bXS,
               ),
               child: FractionallySizedBox(
                 alignment: Alignment.centerLeft,
@@ -302,7 +305,7 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
                           ? [const Color(0xFF2A2A2A), Colors.white]
                           : [AppColors.lightDivider, AppColors.primary],
                     ),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: AppRadius.bXS,
                   ),
                 ),
               ),
@@ -318,7 +321,7 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
   // ========================
   Widget _buildQuoteCard() {
     return Container(
-      padding: widget.padding ?? const EdgeInsets.all(20),
+      padding: widget.padding ?? AppSpacing.cardPadding,
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -334,10 +337,10 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: AppRadius.quoteLine,
               ),
             ),
-            const SizedBox(width: 16),
+            AppSpacing.hGapMD,
             // 引用内容
             Expanded(
               child: Column(
@@ -357,10 +360,10 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
                       height: 0.8,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  AppSpacing.vGapXS,
                   widget.child,
                   if (widget.quoteAuthor != null) ...[
-                    const SizedBox(height: 12),
+                    AppSpacing.vGap12,
                     Text(
                       '\u2014 ${widget.quoteAuthor}',
                       style: TextStyle(
@@ -387,7 +390,7 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
   // ========================
   Widget _buildCapabilityCard() {
     return Container(
-      padding: widget.padding ?? const EdgeInsets.all(20),
+      padding: widget.padding ?? AppSpacing.cardPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -413,16 +416,8 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _isDark
-                            ? AppColors.cardGlowDark.withValues(alpha: 0.15)
-                            : AppColors.cardGlow.withValues(alpha: 0.15),
-                        blurRadius: 12,
-                        spreadRadius: 1,
-                      ),
-                    ],
+                    borderRadius: AppRadius.iconContainer,
+                    boxShadow: AppShadows.iconGlow(isDark: _isDark),
                   ),
                   child: Icon(
                     widget.icon,
@@ -430,7 +425,7 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
                     size: 24,
                   ),
                 ),
-              if (widget.icon != null) const SizedBox(width: 14),
+              if (widget.icon != null) AppSpacing.hGap14,
               // 标题
               if (widget.title != null)
                 Expanded(
@@ -448,7 +443,7 @@ class _CapCardState extends State<CapCard> with SingleTickerProviderStateMixin {
                 ),
             ],
           ),
-          const SizedBox(height: 14),
+          AppSpacing.vGap14,
           widget.child,
         ],
       ),
