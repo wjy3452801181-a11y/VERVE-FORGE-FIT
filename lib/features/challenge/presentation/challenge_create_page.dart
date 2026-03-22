@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/errors/error_handler.dart';
@@ -50,11 +52,11 @@ class _ChallengeCreatePageState extends ConsumerState<ChallengeCreatePage> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           children: [
             // 标题
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _titleController,
                 decoration: InputDecoration(
@@ -66,34 +68,34 @@ class _ChallengeCreatePageState extends ConsumerState<ChallengeCreatePage> {
                     (v == null || v.trim().isEmpty) ? '请输入标题' : null,
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 运动类型
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: Text(
                 context.l10n.challengeSportType,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: AppTextStyles.label.copyWith(letterSpacing: 1.0),
               ),
             ),
-            const SizedBox(height: 8),
+            AppSpacing.vGapSM,
             SportTypeSelector(
               selected: _sportType,
               onSelected: (type) => setState(() => _sportType = type),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 目标类型
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: Text(
                 context.l10n.challengeGoalType,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: AppTextStyles.label.copyWith(letterSpacing: 1.0),
               ),
             ),
-            const SizedBox(height: 8),
+            AppSpacing.vGapSM,
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: SegmentedButton<String>(
                 segments: [
                   ButtonSegment(
@@ -120,11 +122,11 @@ class _ChallengeCreatePageState extends ConsumerState<ChallengeCreatePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 目标值
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _goalValueController,
                 keyboardType: TextInputType.number,
@@ -144,24 +146,26 @@ class _ChallengeCreatePageState extends ConsumerState<ChallengeCreatePage> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 日期选择
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: Row(
                 children: [
-                  Expanded(child: _buildDatePicker(context, isStart: true)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildDatePicker(context, isStart: false)),
+                  Expanded(
+                      child: _buildDatePicker(context, isStart: true)),
+                  AppSpacing.hGap12,
+                  Expanded(
+                      child: _buildDatePicker(context, isStart: false)),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 城市
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: DropdownButtonFormField<String>(
                 initialValue: _city,
                 decoration: InputDecoration(
@@ -183,11 +187,11 @@ class _ChallengeCreatePageState extends ConsumerState<ChallengeCreatePage> {
                 onChanged: (v) => setState(() => _city = v),
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 最大参与人数
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _maxParticipantsController,
                 keyboardType: TextInputType.number,
@@ -202,11 +206,11 @@ class _ChallengeCreatePageState extends ConsumerState<ChallengeCreatePage> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vGapMD,
 
             // 描述
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: TextFormField(
                 controller: _descController,
                 maxLines: 3,
@@ -218,11 +222,11 @@ class _ChallengeCreatePageState extends ConsumerState<ChallengeCreatePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.vGapLG,
 
             // 保存按钮
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppSpacing.pageHorizontalPadding,
               child: FilledButton(
                 onPressed: _isSaving ? null : _save,
                 style: FilledButton.styleFrom(
@@ -240,7 +244,7 @@ class _ChallengeCreatePageState extends ConsumerState<ChallengeCreatePage> {
                     : Text(context.l10n.challengeCreate),
               ),
             ),
-            const SizedBox(height: 32),
+            AppSpacing.vGapXXL,
           ],
         ),
       ),
@@ -265,7 +269,6 @@ class _ChallengeCreatePageState extends ConsumerState<ChallengeCreatePage> {
           setState(() {
             if (isStart) {
               _startDate = picked;
-              // 确保结束日期在开始日期之后
               if (_endDate.isBefore(_startDate)) {
                 _endDate = _startDate.add(const Duration(days: 7));
               }

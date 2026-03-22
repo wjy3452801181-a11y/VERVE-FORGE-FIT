@@ -5,10 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
+import '../../../app/theme/app_radius.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/skeleton.dart';
 import '../../../shared/widgets/sport_type_icon.dart';
+import '../../../shared/widgets/workout_bar.dart';
 import '../domain/challenge_model.dart';
 import '../providers/challenge_provider.dart';
 
@@ -19,7 +23,6 @@ class ChallengesPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 激活 Realtime 订阅
     ref.watch(challengeRealtimeProvider);
 
     final filter = ref.watch(challengeFilterProvider);
@@ -30,32 +33,31 @@ class ChallengesPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text(context.l10n.challengeTitle),
         actions: [
-          // 实时状态指示灯
+          // 实时状态指示灯（复用 _RealtimeDot 风格的简单绿点）
           Padding(
-            padding: const EdgeInsets.only(right: 4),
+            padding: const EdgeInsets.only(right: AppSpacing.xs),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: 7,
+                  height: 7,
                   decoration: const BoxDecoration(
-                    color: AppColors.secondary,
+                    color: AppColors.success,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 4),
+                AppSpacing.hGapXS,
                 Text(
                   context.l10n.challengeRealtime,
                   style: AppTextStyles.caption.copyWith(
-                    color: AppColors.secondary,
+                    color: AppColors.success,
                     fontSize: 11,
                   ),
                 ),
               ],
             ),
           ),
-          // 创建挑战入口
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => context.push(AppRoutes.challengeCreate),
@@ -75,17 +77,23 @@ class ChallengesPage extends ConsumerWidget {
 
           // 城市筛选器
           _buildCityFilter(context, ref, filter),
-          const SizedBox(height: 4),
+          AppSpacing.vGapXS,
 
           // 运动类型筛选器
           _buildSportTypeFilter(context, ref, filter),
-          const SizedBox(height: 8),
+          AppSpacing.vGapSM,
 
           // 列表
           Expanded(
             child: challengesAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 5,
+                itemBuilder: (_, __) => const Padding(
+                  padding: AppSpacing.cardMargin,
+                  child: SkeletonCard(),
+                ),
+              ),
               error: (e, _) => EmptyStateWidget(
                 icon: Icons.error_outline,
                 title: context.l10n.commonError,
@@ -152,10 +160,10 @@ class ChallengesPage extends ConsumerWidget {
       height: 40,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x12),
         children: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: ChoiceChip(
               label: Text(context.l10n.challengeCityAll),
               selected: filter.city == null,
@@ -167,7 +175,7 @@ class ChallengesPage extends ConsumerWidget {
             ),
           ),
           ...cities.map((city) => Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: AppSpacing.sm),
                 child: ChoiceChip(
                   label: Text(city),
                   selected: filter.city == city,
@@ -192,10 +200,10 @@ class ChallengesPage extends ConsumerWidget {
       height: 40,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x12),
         children: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: ChoiceChip(
               label: Text(context.l10n.workoutFilterAll),
               selected: filter.sportType == null,
@@ -207,7 +215,7 @@ class ChallengesPage extends ConsumerWidget {
             ),
           ),
           ...AppConstants.sportTypes.map((type) => Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: AppSpacing.sm),
                 child: ChoiceChip(
                   label: Text(_sportLabel(context, type)),
                   selected: filter.sportType == type,
@@ -223,7 +231,6 @@ class ChallengesPage extends ConsumerWidget {
     );
   }
 
-  /// 使用 l10n 获取运动类型标签
   String _sportLabel(BuildContext context, String type) {
     final l10n = context.l10n;
     switch (type) {
@@ -248,7 +255,7 @@ class ChallengesPage extends ConsumerWidget {
 }
 
 // -------------------------------------------------------
-// 更新提示横幅
+// 更新提示横幅 — 与 feed_page _NewPostsBanner 风格对齐
 // -------------------------------------------------------
 
 class _ChallengeUpdatesBanner extends StatelessWidget {
@@ -262,24 +269,28 @@ class _ChallengeUpdatesBanner extends StatelessWidget {
       onTap: onRefresh,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.x10,
+          horizontal: AppSpacing.md,
+        ),
         decoration: BoxDecoration(
-          color: AppColors.secondary.withValues(alpha: 0.1),
+          color: AppColors.success.withValues(alpha: 0.08),
           border: Border(
             bottom: BorderSide(
-              color: AppColors.secondary.withValues(alpha: 0.2),
+              color: AppColors.success.withValues(alpha: 0.2),
+              width: 0.5,
             ),
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.refresh, size: 16, color: AppColors.secondary),
-            const SizedBox(width: 6),
+            const Icon(Icons.refresh, size: 16, color: AppColors.success),
+            AppSpacing.hGapXS,
             Text(
               context.l10n.challengeNewAvailable,
               style: AppTextStyles.caption.copyWith(
-                color: AppColors.secondary,
+                color: AppColors.success,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -291,7 +302,7 @@ class _ChallengeUpdatesBanner extends StatelessWidget {
 }
 
 // -------------------------------------------------------
-// 挑战赛卡片（增加排行榜快捷入口）
+// 挑战赛卡片
 // -------------------------------------------------------
 
 class _ChallengeCard extends StatelessWidget {
@@ -302,22 +313,40 @@ class _ChallengeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // 进度值（已过时间 / 总天数）
+    final elapsed = challenge.totalDays - challenge.remainingDays;
+    final progressRatio = challenge.totalDays > 0
+        ? (elapsed / challenge.totalDays).clamp(0.0, 1.0)
+        : 1.0;
+    final intensity = (progressRatio * 10).round().clamp(1, 10);
+
+    return Container(
+      margin: AppSpacing.cardMargin,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: AppRadius.bLG,
+        border: Border.all(
+          color: isDark
+              ? AppColors.darkBorder.withValues(alpha: 0.5)
+              : AppColors.lightBorder.withValues(alpha: 0.6),
+          width: 0.5,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.bLG,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.cardPaddingCompact,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 标题行
               Row(
                 children: [
-                  SportTypeIcon(
-                      sportType: challenge.sportType, size: 36),
-                  const SizedBox(width: 12),
+                  SportTypeIcon(sportType: challenge.sportType, size: 36),
+                  AppSpacing.hGap12,
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,96 +357,106 @@ class _ChallengeCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 2),
+                        AppSpacing.vGapXS,
                         Text(
                           '${challenge.sportTypeDisplay} · ${challenge.goalTypeDisplay} ${challenge.goalValue}',
-                          style: AppTextStyles.caption,
+                          style: AppTextStyles.caption.copyWith(
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.lightTextSecondary,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  _buildStatusBadge(context),
+                  AppSpacing.hGapSM,
+                  _buildStatusBadge(context, isDark),
                 ],
               ),
-              const SizedBox(height: 12),
+              AppSpacing.vGap12,
 
-              // 进度条
+              // 进度条 — WorkoutBar 替换 LinearProgressIndicator
               if (challenge.isActive) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    value: challenge.remainingDays > 0
-                        ? 1.0 -
-                            (challenge.remainingDays / challenge.totalDays)
-                                .clamp(0.0, 1.0)
-                        : 1.0,
-                    minHeight: 4,
-                    backgroundColor: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.08),
-                    color: AppColors.primary,
-                  ),
+                WorkoutBar(
+                  value: progressRatio,
+                  intensity: intensity,
+                  showLabel: false,
+                  height: 5,
                 ),
-                const SizedBox(height: 10),
+                AppSpacing.vGap10,
               ],
 
-              // 信息行
+              // 信息行：参与人数 + 剩余天数 + 城市
               Row(
                 children: [
-                  Icon(Icons.people_outline,
-                      size: 14,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.5)),
-                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.people_outline,
+                    size: 14,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
+                  ),
+                  AppSpacing.hGapXS,
                   Text(
-                    context.l10n.challengeParticipants(
-                        challenge.participantCount),
+                    context.l10n
+                        .challengeParticipants(challenge.participantCount),
                     style: AppTextStyles.caption,
                   ),
-                  const SizedBox(width: 16),
-                  Icon(Icons.schedule,
-                      size: 14,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.5)),
-                  const SizedBox(width: 4),
+                  AppSpacing.hGapMD,
+                  Icon(
+                    Icons.schedule,
+                    size: 14,
+                    color: challenge.remainingDays > 0 &&
+                            challenge.remainingDays <= 3
+                        ? AppColors.warning
+                        : (isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary),
+                  ),
+                  AppSpacing.hGapXS,
                   Text(
                     challenge.remainingDays > 0
                         ? context.l10n
                             .challengeRemainingDays(challenge.remainingDays)
                         : context.l10n.challengeStatusCompleted,
-                    style: AppTextStyles.caption,
+                    style: AppTextStyles.caption.copyWith(
+                      color: challenge.remainingDays > 0 &&
+                              challenge.remainingDays <= 3
+                          ? AppColors.warning
+                          : null,
+                      fontWeight: challenge.remainingDays <= 3
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
                   ),
                   if (challenge.city != null) ...[
-                    const SizedBox(width: 16),
-                    Icon(Icons.location_on_outlined,
-                        size: 14,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.5)),
-                    const SizedBox(width: 2),
+                    AppSpacing.hGapMD,
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
+                    ),
+                    AppSpacing.hGapXS,
                     Text(challenge.city!, style: AppTextStyles.caption),
                   ],
                 ],
               ),
 
-              // 创建者 + 排行榜入口 + 已参加标记
+              // 创建者行 + 排行榜入口 + 已参加标记
               if (challenge.creatorNickname != null) ...[
-                const SizedBox(height: 8),
+                AppSpacing.vGapSM,
                 Row(
                   children: [
-                    Icon(Icons.person_outline,
-                        size: 13,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.4)),
-                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.person_outline,
+                      size: 13,
+                      color: isDark
+                          ? AppColors.darkTextSecondary.withValues(alpha: 0.6)
+                          : AppColors.lightTextSecondary.withValues(alpha: 0.6),
+                    ),
+                    AppSpacing.hGapXS,
                     Text(
                       challenge.creatorNickname!,
                       style: AppTextStyles.caption.copyWith(fontSize: 11),
@@ -429,17 +468,23 @@ class _ChallengeCard extends StatelessWidget {
                       onTap: onTap,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                          horizontal: AppSpacing.sm,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: AppRadius.bXS,
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                            width: 0.5,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(Icons.leaderboard,
                                 size: 12, color: AppColors.primary),
-                            const SizedBox(width: 3),
+                            AppSpacing.hGapXS,
                             Text(
                               context.l10n.challengeLeaderboard,
                               style: const TextStyle(
@@ -454,19 +499,25 @@ class _ChallengeCard extends StatelessWidget {
                     ),
 
                     if (challenge.isJoined == true) ...[
-                      const SizedBox(width: 8),
+                      AppSpacing.hGapSM,
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                          horizontal: AppSpacing.sm,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: AppColors.secondary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(4),
+                          color: AppColors.success.withValues(alpha: 0.12),
+                          borderRadius: AppRadius.bXS,
+                          border: Border.all(
+                            color: AppColors.success.withValues(alpha: 0.25),
+                            width: 0.5,
+                          ),
                         ),
                         child: Text(
                           context.l10n.challengeJoin,
                           style: const TextStyle(
                             fontSize: 10,
-                            color: AppColors.secondary,
+                            color: AppColors.success,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -482,25 +533,53 @@ class _ChallengeCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(BuildContext context) {
+  Widget _buildStatusBadge(BuildContext context, bool isDark) {
     if (challenge.isFull) {
-      return Chip(
-        label: Text(context.l10n.challengeFull,
-            style: const TextStyle(fontSize: 10)),
-        backgroundColor: AppColors.warning.withValues(alpha: 0.15),
-        side: BorderSide.none,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: 2,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.warning.withValues(alpha: 0.12),
+          borderRadius: AppRadius.bXS,
+          border: Border.all(
+            color: AppColors.warning.withValues(alpha: 0.3),
+            width: 0.5,
+          ),
+        ),
+        child: Text(
+          context.l10n.challengeFull,
+          style: const TextStyle(
+            fontSize: 10,
+            color: AppColors.warning,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       );
     }
     if (challenge.isActive) {
-      return Chip(
-        label: Text(context.l10n.challengeStatusActive,
-            style: const TextStyle(fontSize: 10)),
-        backgroundColor: AppColors.secondary.withValues(alpha: 0.15),
-        side: BorderSide.none,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: 2,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.success.withValues(alpha: 0.12),
+          borderRadius: AppRadius.bXS,
+          border: Border.all(
+            color: AppColors.success.withValues(alpha: 0.25),
+            width: 0.5,
+          ),
+        ),
+        child: Text(
+          context.l10n.challengeStatusActive,
+          style: const TextStyle(
+            fontSize: 10,
+            color: AppColors.success,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       );
     }
     return const SizedBox.shrink();
