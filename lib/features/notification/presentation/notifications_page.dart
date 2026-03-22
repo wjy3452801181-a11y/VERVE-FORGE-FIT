@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../shared/widgets/avatar_widget.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/skeleton.dart';
 import '../domain/notification_model.dart';
 import '../providers/notification_provider.dart';
 
@@ -32,7 +34,19 @@ class NotificationsPage extends ConsumerWidget {
         ],
       ),
       body: notificationsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => ListView(
+          padding: AppSpacing.pagePadding,
+          physics: const NeverScrollableScrollPhysics(),
+          children: const [
+            SkeletonAvatarRow(),
+            SizedBox(height: AppSpacing.md),
+            SkeletonAvatarRow(),
+            SizedBox(height: AppSpacing.md),
+            SkeletonAvatarRow(),
+            SizedBox(height: AppSpacing.md),
+            SkeletonAvatarRow(),
+          ],
+        ),
         error: (e, _) => EmptyStateWidget(
           icon: Icons.error_outline,
           title: context.l10n.commonError,
@@ -51,6 +65,7 @@ class NotificationsPage extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () =>
                 ref.read(notificationsProvider.notifier).refresh(),
+            color: AppColors.primary,
             child: NotificationList(notifications: notifications),
           );
         },
@@ -92,10 +107,15 @@ class _NotificationListState extends ConsumerState<NotificationList> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ListView.separated(
       controller: _scrollController,
       itemCount: widget.notifications.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (_, __) => Divider(
+        height: 1,
+        color: isDark ? AppColors.darkDivider : AppColors.lightDivider,
+      ),
       itemBuilder: (context, index) {
         final n = widget.notifications[index];
         return _NotificationTile(notification: n);
@@ -111,7 +131,13 @@ class _NotificationTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       leading: _buildLeading(),
       title: Text(
         notification.title,
@@ -124,7 +150,11 @@ class _NotificationTile extends ConsumerWidget {
               notification.body,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.caption,
+              style: AppTextStyles.caption.copyWith(
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
             )
           : null,
       trailing: Column(
@@ -132,10 +162,15 @@ class _NotificationTile extends ConsumerWidget {
         children: [
           Text(
             _formatTime(notification.createdAt),
-            style: AppTextStyles.caption.copyWith(fontSize: 11),
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 11,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.lightTextSecondary,
+            ),
           ),
           if (!notification.isRead) ...[
-            const SizedBox(height: 4),
+            AppSpacing.vGapXS,
             Container(
               width: 8,
               height: 8,
