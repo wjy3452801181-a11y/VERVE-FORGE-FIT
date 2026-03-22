@@ -798,15 +798,21 @@ class AiAvatarDetailPage extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
+              // 先关闭对话框（用 ctx，生命周期确定）
               Navigator.pop(ctx);
               try {
                 await ref
                     .read(currentAiAvatarProvider.notifier)
                     .deleteAvatar();
+                // 用 context（page 级），async 结束后再次守卫
                 if (context.mounted) {
                   ErrorHandler.showSuccess(
                       context, context.l10n.aiAvatarDeleted);
-                  Navigator.pop(context);
+                  // 使用 post-frame 确保当前帧完成后再 pop，
+                  // 消除 mounted 检查与 pop 之间的一帧窗口
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (context.mounted) Navigator.pop(context);
+                  });
                 }
               } catch (e) {
                 if (context.mounted) {

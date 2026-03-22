@@ -150,7 +150,6 @@ final heartbeatProvider = Provider<HeartbeatService>((ref) {
 class HeartbeatService {
   final Ref _ref;
   Timer? _timer;
-  bool _isRunning = false;
 
   /// 心跳间隔（2 分钟）
   static const _interval = Duration(minutes: 2);
@@ -158,14 +157,11 @@ class HeartbeatService {
   HeartbeatService(this._ref);
 
   /// 启动心跳定时器
+  /// 使用 _timer != null 作为原子守卫：cancel 后再创建，保证单例
   void start() {
-    if (_isRunning) return;
-    _isRunning = true;
-
+    if (_timer != null) return; // 已在运行，幂等
     // 立即执行一次
     _tick();
-
-    // 每 2 分钟执行一次
     _timer = Timer.periodic(_interval, (_) => _tick());
   }
 
@@ -173,7 +169,6 @@ class HeartbeatService {
   void stop() {
     _timer?.cancel();
     _timer = null;
-    _isRunning = false;
   }
 
   /// 单次心跳：更新 last_seen_at
@@ -187,7 +182,7 @@ class HeartbeatService {
   }
 
   /// 当前是否在运行
-  bool get isRunning => _isRunning;
+  bool get isRunning => _timer != null;
 }
 
 // ============================================================
@@ -309,6 +304,9 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
   /// 是否正在加载中（防重复）
   bool _isLoadingHistory = false;
 
+  /// 串行化发送队列：同时只允许一条消息在途，避免并发写 state.messages 丢消息
+  bool _isSendingMessage = false;
+
   bool get hasMoreHistory => _hasMoreHistory;
 
   AiAvatarChatNotifier(this._ref) : super(const AiAvatarChatState());
@@ -318,22 +316,31 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
 
   /// 发送消息并获取 AI 回复
   Future<void> sendMessage(String message) async {
-    final avatar = _ref.read(currentAiAvatarProvider).valueOrNull;
-    if (avatar == null) return;
+    // 串行化：上一条消息还在途时，直接返回（UI 层同样有 _isSending 守卫）
+    if (_isSendingMessage) return;
+    _isSendingMessage = true;
 
-    // 添加用户消息
+    final avatar = _ref.read(currentAiAvatarProvider).valueOrNull;
+    if (avatar == null) {
+      _isSendingMessage = false;
+      return;
+    }
+
+    // 添加用户消息，并在 await 前快照此时的历史，防止 await 期间 state 被别处修改
     final userMsg = ChatMessage(
       content: message,
       isUser: true,
       timestamp: DateTime.now(),
     );
+    final messagesBeforeSend = [...state.messages, userMsg];
     state = state.copyWith(
-      messages: [...state.messages, userMsg],
+      messages: messagesBeforeSend,
       isTyping: true,
     );
 
-    // 构造对话历史（发送给 Edge Function）
+    // history 快照：基于 await 前的消息列表，不含刚加入的 userMsg
     final history = state.messages
+        .where((m) => m.id != userMsg.id) // 排除刚加的 userMsg
         .map((m) => <String, String>{
               'role': m.isUser ? 'user' : 'assistant',
               'content': m.content,
@@ -345,13 +352,13 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
       final reply = await repo.chatWithAvatar(
         avatarId: avatar.id,
         message: message,
-        history: history.sublist(0, history.length - 1), // 不含最新一条
+        history: history,
       );
 
       // 检测是否为过滤模板回复
       final isFiltered = reply == _filteredReplyTemplate;
 
-      // 添加 AI 回复
+      // 追加 AI 回复：在 await 结束后取最新 state，避免覆盖 await 期间新增的消息
       state = state.copyWith(
         messages: [
           ...state.messages,
@@ -377,6 +384,8 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
         ],
         isTyping: false,
       );
+    } finally {
+      _isSendingMessage = false;
     }
   }
 
@@ -403,10 +412,15 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
         return;
       }
 
-      // 时间游标：当前最早消息的时间戳（无消息则不传）
+      // 时间游标：在 await 前快照，避免 await 期间 state.messages 被 sendMessage 修改
+      // 导致 cursor 过期、历史消息重复或缺失
       final DateTime? cursor = state.messages.isNotEmpty
           ? state.messages.first.timestamp
           : null;
+
+      // 同理，提前快照 currentUserId，避免 await 期间认证状态变化返回空 ID
+      final currentUserId =
+          _ref.read(currentAiAvatarProvider).valueOrNull?.userId ?? '';
 
       final repo = _ref.read(aiAvatarRepositoryProvider);
       final rows = await repo.getChatHistory(
@@ -420,9 +434,6 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
       }
 
       if (rows.isNotEmpty) {
-        final currentUserId =
-            _ref.read(currentAiAvatarProvider).valueOrNull?.userId ?? '';
-
         // 将 DB 行转换为 ChatMessage，按时间正序排列（prepend 到列表头部）
         final historyMessages = rows
             .map((row) =>
@@ -430,8 +441,13 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
             .toList()
           ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
+        // 去重：过滤掉已在当前 state 中存在的消息 ID，防止与 sendMessage 并发时产生重复
+        final existingIds = state.messages.map((m) => m.id).toSet();
+        final dedupedHistory =
+            historyMessages.where((m) => !existingIds.contains(m.id)).toList();
+
         state = state.copyWith(
-          messages: [...historyMessages, ...state.messages],
+          messages: [...dedupedHistory, ...state.messages],
           isLoadingHistory: false,
         );
       } else {

@@ -149,23 +149,36 @@ class AiAvatarRepository {
     List<Map<String, String>> history = const [],
   }) async {
     try {
-      final response = await SupabaseClientHelper.client.functions.invoke(
-        'ai-avatar-chat',
-        body: {
-          'avatar_id': avatarId,
-          'message': message,
-          'history': history,
-        },
-      );
+      final response = await SupabaseClientHelper.client.functions
+          .invoke(
+            'ai-avatar-chat',
+            body: {
+              'avatar_id': avatarId,
+              'message': message,
+              'history': history,
+            },
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () =>
+                throw const AppException(message: '聊天请求超时，请检查网络后重试'),
+          );
 
       if (response.status != 200) {
         throw AppException(message: '聊天请求失败: ${response.status}');
       }
 
-      final data = response.data as Map<String, dynamic>;
-      return data['reply'] as String? ?? '抱歉，我暂时无法回复。';
+      // 运行时类型检查，防止 Edge Function 返回非 Map 格式时崩溃
+      final raw = response.data;
+      if (raw is! Map<String, dynamic>) {
+        _log.e('ai-avatar-chat 返回格式异常: ${raw.runtimeType}');
+        return '抱歉，我暂时无法回复。';
+      }
+      return raw['reply'] as String? ?? '抱歉，我暂时无法回复。';
     } catch (e) {
       _log.e('与分身聊天失败', error: e);
+      // AppException 直接向上抛（含超时），其他异常包装
+      if (e is AppException) rethrow;
       throw const AppException(message: '聊天失败，请重试');
     }
   }
@@ -188,10 +201,16 @@ class AiAvatarRepository {
   /// 返回更新后的分身数据
   Future<AiAvatarModel> refreshAvatarProfile(String avatarId) async {
     try {
-      final response = await SupabaseClientHelper.client.functions.invoke(
-        'ai-avatar-profile-update',
-        body: {'avatar_id': avatarId},
-      );
+      final response = await SupabaseClientHelper.client.functions
+          .invoke(
+            'ai-avatar-profile-update',
+            body: {'avatar_id': avatarId},
+          )
+          .timeout(
+            const Duration(seconds: 60),
+            onTimeout: () =>
+                throw const AppException(message: '画像更新超时，请稍后重试'),
+          );
 
       if (response.status != 200) {
         throw AppException(message: '画像更新失败: ${response.status}');
@@ -209,6 +228,7 @@ class AiAvatarRepository {
       return AiAvatarModel.fromJson(data);
     } catch (e) {
       _log.e('刷新分身画像失败', error: e);
+      if (e is AppException) rethrow;
       throw const AppException(message: '画像更新失败，请稍后重试');
     }
   }
