@@ -26,6 +26,8 @@ class AppTheme {
       fontFamily: 'Inter',
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.darkBackground,
+      splashColor: Colors.white.withValues(alpha: 0.08),
+      highlightColor: Colors.white.withValues(alpha: 0.05),
 
       // AppBar
       appBarTheme: const AppBarTheme(
@@ -167,6 +169,7 @@ class AppTheme {
       primary: AppColors.primary,
       secondary: AppColors.secondary,
       surface: AppColors.lightSurface,
+      error: AppColors.error,
     );
 
     return ThemeData(
@@ -175,6 +178,8 @@ class AppTheme {
       fontFamily: 'Inter',
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.lightBackground,
+      splashColor: AppColors.primary.withValues(alpha: 0.08),
+      highlightColor: AppColors.primary.withValues(alpha: 0.05),
 
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,

@@ -75,10 +75,10 @@ class AppColors {
   // ========================
   // 语义色
   // ========================
-  static const Color success = Color(0xFF111111);
-  static const Color warning = Color(0xFF666666);
-  static const Color error = Color(0xFF111111);
-  static const Color info = Color(0xFF888888);
+  static const Color success = Color(0xFF2ECC71);  // 翠绿 — 成功/完成
+  static const Color warning = Color(0xFFF39C12);  // 琥珀 — 警告/注意
+  static const Color error   = Color(0xFFE74C3C);  // 朱红 — 错误/危险
+  static const Color info    = Color(0xFF3498DB);  // 天蓝 — 提示/信息
 
   // ========================
   // 训练强度色阶（1-10）灰度渐变

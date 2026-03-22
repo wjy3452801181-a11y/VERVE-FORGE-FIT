@@ -828,6 +828,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMyBuddies => 'My Buddies';
 
   @override
+  String get profileSectionTraining => 'TRAINING';
+
+  @override
+  String get profileSectionSocial => 'SOCIAL';
+
+  @override
+  String get profileSectionAccount => 'ACCOUNT';
+
+  @override
   String get buddyListTitle => 'Buddies';
 
   @override

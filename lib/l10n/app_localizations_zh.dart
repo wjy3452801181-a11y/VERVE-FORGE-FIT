@@ -814,6 +814,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileMyBuddies => '我的伙伴';
 
   @override
+  String get profileSectionTraining => '训练';
+
+  @override
+  String get profileSectionSocial => '社交';
+
+  @override
+  String get profileSectionAccount => '账户';
+
+  @override
   String get buddyListTitle => '好友列表';
 
   @override
@@ -2200,6 +2209,15 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get profileMyBuddies => '我的伙伴';
 
   @override
+  String get profileSectionTraining => '训练';
+
+  @override
+  String get profileSectionSocial => '社交';
+
+  @override
+  String get profileSectionAccount => '账户';
+
+  @override
   String get buddyListTitle => '好友列表';
 
   @override
@@ -3584,6 +3602,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get profileMyBuddies => '我的夥伴';
+
+  @override
+  String get profileSectionTraining => '訓練';
+
+  @override
+  String get profileSectionSocial => '社交';
+
+  @override
+  String get profileSectionAccount => '帳戶';
 
   @override
   String get buddyListTitle => '好友列表';

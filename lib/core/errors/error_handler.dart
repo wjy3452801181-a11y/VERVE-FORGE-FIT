@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supa;
 
+import '../../app/theme/app_colors.dart';
 import 'app_exception.dart';
 
 /// 全局错误处理器
@@ -101,7 +102,7 @@ class ErrorHandler {
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.success,
         duration: const Duration(seconds: 2),
       ),
     );

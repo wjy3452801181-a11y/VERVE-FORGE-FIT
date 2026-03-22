@@ -1684,6 +1684,24 @@ abstract class AppLocalizations {
   /// **'我的伙伴'**
   String get profileMyBuddies;
 
+  /// No description provided for @profileSectionTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'TRAINING'**
+  String get profileSectionTraining;
+
+  /// No description provided for @profileSectionSocial.
+  ///
+  /// In en, this message translates to:
+  /// **'SOCIAL'**
+  String get profileSectionSocial;
+
+  /// No description provided for @profileSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'ACCOUNT'**
+  String get profileSectionAccount;
+
   /// No description provided for @buddyListTitle.
   ///
   /// In zh_CN, this message translates to:

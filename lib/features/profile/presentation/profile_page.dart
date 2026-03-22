@@ -140,7 +140,8 @@ class ProfilePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // 功能入口
+                // 功能入口 — 训练
+                _buildSectionHeader(context, context.l10n.profileSectionTraining),
                 Card(
                   child: Column(
                     children: [
@@ -173,7 +174,16 @@ class ProfilePage extends ConsumerWidget {
                         title: context.l10n.aiAvatarTitle,
                         onTap: () => context.push(AppRoutes.aiAvatar),
                       ),
-                      const Divider(height: 1, indent: 56),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // 功能入口 — 社交
+                _buildSectionHeader(context, context.l10n.profileSectionSocial),
+                Card(
+                  child: Column(
+                    children: [
                       _buildMenuItem(
                         icon: Icons.emoji_events_outlined,
                         title: context.l10n.profileMyChallenges,
@@ -191,7 +201,16 @@ class ProfilePage extends ConsumerWidget {
                         title: context.l10n.chatTitle,
                         onTap: () => context.push(AppRoutes.conversations),
                       ),
-                      const Divider(height: 1, indent: 56),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // 功能入口 — 账户
+                _buildSectionHeader(context, context.l10n.profileSectionAccount),
+                Card(
+                  child: Column(
+                    children: [
                       _buildMenuItem(
                         icon: Icons.privacy_tip_outlined,
                         title: context.l10n.profilePrivacy,
@@ -200,10 +219,25 @@ class ProfilePage extends ConsumerWidget {
                     ],
                   ),
                 ),
+                const SizedBox(height: 24),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: AppColors.lightTextSecondary,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+            ),
       ),
     );
   }
