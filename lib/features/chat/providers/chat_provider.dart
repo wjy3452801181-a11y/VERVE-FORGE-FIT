@@ -50,10 +50,16 @@ class MessagesNotifier
 
     final repo = ref.read(chatRepositoryProvider);
 
+    // 在第一个 await 之前注册 dispose，确保只注册一次且不遗漏
+    ref.onDispose(() {
+      _channel?.unsubscribe();
+      _channel = null;
+    });
+
     // 标记对方消息为已读
     await repo.markAsRead(arg);
 
-    // 订阅实时消息
+    // 订阅实时消息（先取消旧订阅）
     _channel?.unsubscribe();
     _channel = repo.subscribeMessages(
       onNewMessage: (msg) {
@@ -68,10 +74,6 @@ class MessagesNotifier
         }
       },
     );
-
-    ref.onDispose(() {
-      _channel?.unsubscribe();
-    });
 
     final messages = await repo.getMessages(otherUserId: arg);
     _hasMore = messages.length >= 30;

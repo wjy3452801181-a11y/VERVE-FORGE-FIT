@@ -146,6 +146,20 @@ class ChallengeLeaderboardNotifier extends AutoDisposeFamilyAsyncNotifier<
   Future<List<ChallengeParticipantModel>> build(String arg) async {
     final repo = ref.read(challengeRepositoryProvider);
 
+    // 先注册清理，确保无论 build 是否完成都能释放资源
+    ref.onDispose(() {
+      if (_channel != null) {
+        repo.unsubscribeLeaderboard(_channel!);
+        _channel = null;
+      }
+    });
+
+    // 清理旧订阅，再建立新订阅
+    if (_channel != null) {
+      repo.unsubscribeLeaderboard(_channel!);
+      _channel = null;
+    }
+
     // 订阅 Realtime 更新
     _channel = repo.subscribeLeaderboard(
       arg,
@@ -155,14 +169,6 @@ class ChallengeLeaderboardNotifier extends AutoDisposeFamilyAsyncNotifier<
         state = AsyncValue.data(updated);
       },
     );
-
-    // 组件销毁时取消订阅
-    ref.onDispose(() {
-      if (_channel != null) {
-        repo.unsubscribeLeaderboard(_channel!);
-        _channel = null;
-      }
-    });
 
     return repo.getLeaderboard(arg);
   }

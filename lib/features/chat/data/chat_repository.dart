@@ -14,7 +14,8 @@ class ChatRepository {
 
   /// 获取会话列表（按最新消息排序，每个对话取最后一条）
   Future<List<ConversationModel>> getConversations() async {
-    final userId = SupabaseClientHelper.currentUserId!;
+    final userId = SupabaseClientHelper.currentUserId;
+    if (userId == null) return [];
 
     // 使用 RPC 或直接查询获取每个会话的最新消息
     // 这里采用查询所有消息按时间排序，在客户端去重的方式
@@ -67,7 +68,8 @@ class ChatRepository {
     int page = 0,
     int pageSize = 30,
   }) async {
-    final userId = SupabaseClientHelper.currentUserId!;
+    final userId = SupabaseClientHelper.currentUserId;
+    if (userId == null) return [];
 
     final data = await SupabaseClientHelper.from(_table)
         .select('*, sender:profiles!messages_sender_id_fkey(nickname, avatar_url)')
@@ -86,7 +88,8 @@ class ChatRepository {
     required String content,
     String messageType = 'text',
   }) async {
-    final userId = SupabaseClientHelper.currentUserId!;
+    final userId = SupabaseClientHelper.currentUserId;
+    if (userId == null) throw StateError('用户未登录，无法发送消息');
 
     final data = await SupabaseClientHelper.from(_table)
         .insert({
@@ -103,7 +106,8 @@ class ChatRepository {
 
   /// 标记对方消息为已读
   Future<void> markAsRead(String otherUserId) async {
-    final userId = SupabaseClientHelper.currentUserId!;
+    final userId = SupabaseClientHelper.currentUserId;
+    if (userId == null) return;
 
     await SupabaseClientHelper.from(_table)
         .update({'is_read': true})
@@ -116,7 +120,11 @@ class ChatRepository {
   RealtimeChannel subscribeMessages({
     required void Function(MessageModel message) onNewMessage,
   }) {
-    final userId = SupabaseClientHelper.currentUserId!;
+    final userId = SupabaseClientHelper.currentUserId;
+    if (userId == null) {
+      // 未登录时返回一个空的未订阅 channel，调用方可安全 unsubscribe
+      return SupabaseClientHelper.client.channel('messages:unauthenticated');
+    }
 
     return SupabaseClientHelper.client
         .channel('messages:$userId')

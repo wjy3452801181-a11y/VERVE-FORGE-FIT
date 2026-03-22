@@ -99,7 +99,7 @@ class _CrossFitMetricsFormState extends State<CrossFitMetricsForm> {
               .toList(),
           selected: {_wodType},
           onSelectionChanged: (set) {
-            setState(() => _wodType = set.first);
+            setState(() => _wodType = set.isNotEmpty ? set.first : _wodType);
             _emitChange();
           },
           style: SegmentedButton.styleFrom(

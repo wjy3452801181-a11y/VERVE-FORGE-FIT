@@ -165,8 +165,8 @@ class ChallengeModel {
     return endsAt.difference(now).inDays;
   }
 
-  /// 总天数
-  int get totalDays => endsAt.difference(startsAt).inDays;
+  /// 总天数（最小为 1，防止下游进度条除零）
+  int get totalDays => endsAt.difference(startsAt).inDays.clamp(1, 9999);
 
   /// 目标类型显示名
   String get goalTypeDisplay {
