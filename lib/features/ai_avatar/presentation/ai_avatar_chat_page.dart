@@ -1170,22 +1170,28 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
     if (!mounted) return;
 
     // 使用 OverlayEntry 在气泡位置显示"缩放+勾号"动画
+    // 在此处快照 overlay 和 messenger，避免 OverlayEntry 回调时 context 已失效
     final overlay = Overlay.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final copiedText = context.l10n.aiChatCopied;
+
     late final OverlayEntry entry;
     entry = OverlayEntry(
       builder: (ctx) => _CopyFeedbackOverlay(
-        onComplete: () => entry.remove(),
+        onComplete: () {
+          if (entry.mounted) entry.remove();
+        },
       ),
     );
     overlay.insert(entry);
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger.showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const Icon(Icons.check_circle_outline, size: 16, color: Colors.white),
             AppSpacing.hGapSM,
-            Text(context.l10n.aiChatCopied),
+            Text(copiedText),
           ],
         ),
         duration: const Duration(milliseconds: 800),
@@ -1201,6 +1207,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   /// 滚动到底部
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -1275,21 +1282,24 @@ class _DynamicThinkingTextState extends State<_DynamicThinkingText>
     final delayMs = 3000 + _rng.nextInt(5001); // 3000–8000ms
     Future.delayed(Duration(milliseconds: delayMs), () {
       if (!mounted) return;
-      _fadeController.forward().then((_) {
-        if (!mounted) return;
-        // 随机选一个不同于当前的索引
-        int next;
-        if (widget.texts.length <= 1) {
-          next = 0;
-        } else {
-          do {
-            next = _rng.nextInt(widget.texts.length);
-          } while (next == _currentIndex);
-        }
-        setState(() => _currentIndex = next);
-        _fadeController.reverse();
-        _startRotation();
-      });
+      // 控制器可能在 delay 期间已被 dispose，forward() 前先检查
+      if (!_fadeController.isCompleted && _fadeController.duration != null) {
+        _fadeController.forward().then((_) {
+          if (!mounted) return;
+          // 随机选一个不同于当前的索引
+          int next;
+          if (widget.texts.length <= 1) {
+            next = 0;
+          } else {
+            do {
+              next = _rng.nextInt(widget.texts.length);
+            } while (next == _currentIndex);
+          }
+          setState(() => _currentIndex = next);
+          _fadeController.reverse();
+          _startRotation();
+        });
+      }
     });
   }
 

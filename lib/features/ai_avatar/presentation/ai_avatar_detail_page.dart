@@ -352,7 +352,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
                       AppSpacing.hGapXS,
                       Expanded(
                         child: Text(
-                          avatar.fitnessHabits['summary'] as String,
+                          avatar.fitnessHabits['summary'].toString(),
                           style: AppTextStyles.caption.copyWith(
                             fontSize: 11,
                             color:

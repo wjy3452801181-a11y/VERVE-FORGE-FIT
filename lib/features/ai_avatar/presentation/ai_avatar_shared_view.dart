@@ -102,7 +102,7 @@ class AiAvatarSharedView extends ConsumerWidget {
     final avatarId = data['id'] as String?;
     final avatarUrl = data['avatar_url'] as String?;
     final traits = (data['personality_traits'] as List<dynamic>?)
-            ?.map((e) => e as String)
+            ?.whereType<String>()
             .toList() ??
         [];
     final style = data['speaking_style'] as String? ?? 'friendly';
