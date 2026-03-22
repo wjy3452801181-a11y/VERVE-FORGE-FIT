@@ -5,15 +5,12 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_radius.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../shared/widgets/avatar_widget.dart';
 import '../../domain/post_model.dart';
 import '../../providers/post_provider.dart';
-
-// -------------------------------------------------------
-// 涂鸦风格局部常量（仅 post_card 内使用）
-// -------------------------------------------------------
-const _kGraffitiNeon = Color(0xFFCDFF00); // 荧光黄绿
 
 /// 图片缩略图解码宽度上限（像素）
 /// 【性能优化】限制 CachedNetworkImage 解码尺寸，降低 GPU 内存
@@ -45,9 +42,12 @@ class PostCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.x12,
+          vertical: AppSpacing.x6,
+        ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: AppRadius.bSM,
           child: Container(
             decoration: BoxDecoration(
               color: context.theme.colorScheme.surface,
@@ -59,13 +59,16 @@ class PostCard extends StatelessWidget {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.x14,
+                vertical: AppSpacing.x12,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 作者信息行
                   _buildAuthorRow(context),
-                  const SizedBox(height: 8),
+                  AppSpacing.vGapSM,
 
                   // 正文内容
                   if (post.content.isNotEmpty)
@@ -73,11 +76,11 @@ class PostCard extends StatelessWidget {
 
                   // 照片网格
                   if (post.hasPhotos) ...[
-                    const SizedBox(height: 8),
-                    _buildPhotoGrid(context),
+                    AppSpacing.vGapSM,
+                    _buildPhotoGrid(),
                   ],
 
-                  const SizedBox(height: 10),
+                  AppSpacing.vGap10,
 
                   // 互动行用独立 Consumer 包裹
                   _PostActionRow(
@@ -97,7 +100,6 @@ class PostCard extends StatelessWidget {
   Widget _buildAuthorRow(BuildContext context) {
     return Row(
       children: [
-        // 头像 — 橙色描边
         AvatarWidget(
           imageUrl: post.authorAvatar,
           size: 40,
@@ -105,7 +107,7 @@ class PostCard extends StatelessWidget {
           onTap: onAuthorTap,
           showBorder: true,
         ),
-        const SizedBox(width: 10),
+        AppSpacing.hGap10,
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +121,7 @@ class PostCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
+              AppSpacing.vGapXS,
               Text(
                 post.timeAgo,
                 style: AppTextStyles.caption.copyWith(
@@ -130,27 +132,25 @@ class PostCard extends StatelessWidget {
             ],
           ),
         ),
-        // 城市标签已移除（数据库无 city 列）
       ],
     );
   }
 
   /// 照片网格（1 张全宽，2-3 张一行，4+ 九宫格）
-  Widget _buildPhotoGrid(BuildContext context) {
+  Widget _buildPhotoGrid() {
     final photos = post.imageUrls;
     final count = photos.length;
 
     if (count == 1) {
       return Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: AppRadius.bXS,
           border: Border.all(color: Colors.black87, width: 2),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(2),
+          borderRadius: AppRadius.bXS,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 240),
-            // 【性能优化】添加 Shimmer placeholder + memCacheWidth 限制解码尺寸
             child: CachedNetworkImage(
               imageUrl: photos[0],
               width: double.infinity,
@@ -172,19 +172,18 @@ class PostCard extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        crossAxisSpacing: 4,
-        mainAxisSpacing: 4,
+        crossAxisSpacing: AppSpacing.xs,
+        mainAxisSpacing: AppSpacing.xs,
       ),
       itemCount: displayCount,
       itemBuilder: (context, index) {
         return Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: AppRadius.bXS,
             border: Border.all(color: Colors.black87, width: 2),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            // 【性能优化】memCacheWidth 限制网格图解码宽度，大幅减少 GPU 纹理内存
+            borderRadius: AppRadius.bXS,
             child: CachedNetworkImage(
               imageUrl: photos[index],
               fit: BoxFit.cover,
@@ -215,7 +214,7 @@ class _PostActionRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 【性能优化】优先使用 PostModel 内嵌的 isLiked 字段
+    // 优先使用 PostModel 内嵌的 isLiked 字段
     // 该字段由服务端查询时一次返回，避免每张卡片独立发起 N 次网络请求
     // 仅当 post.isLiked == null（旧数据兼容）时回退到独立 Provider
     final bool isLiked;
@@ -228,7 +227,7 @@ class _PostActionRow extends ConsumerWidget {
 
     return Row(
       children: [
-        // 点赞按钮 — 橙色药丸
+        // 点赞按钮 — 黑色药丸（主题色）
         _GraffitiPillButton(
           icon: isLiked ? Icons.favorite : Icons.favorite_border,
           label: post.likesCount > 0 ? '${post.likesCount}' : '',
@@ -237,13 +236,13 @@ class _PostActionRow extends ConsumerWidget {
             ref.read(postActionProvider).toggleLike(post.id);
           },
         ),
-        const SizedBox(width: 12),
+        AppSpacing.hGap12,
 
         // 评论按钮 — 深灰药丸
         _GraffitiPillButton(
           icon: Icons.chat_bubble_outline,
           label: post.commentsCount > 0 ? '${post.commentsCount}' : '',
-          backgroundColor: Colors.grey.shade800,
+          backgroundColor: AppColors.accent,
           onTap: onCommentTap,
         ),
       ],
@@ -252,7 +251,7 @@ class _PostActionRow extends ConsumerWidget {
 }
 
 // -------------------------------------------------------
-// 【性能优化】图片加载 Shimmer 占位 — 替代空白等待
+// 图片加载 Shimmer 占位
 // -------------------------------------------------------
 
 class _ImageShimmer extends StatelessWidget {
@@ -264,9 +263,9 @@ class _ImageShimmer extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
+      baseColor: isDark ? AppColors.darkCard : AppColors.lightCard,
       highlightColor:
-          isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F5F5),
+          isDark ? AppColors.darkCardHover : AppColors.lightCardHover,
       child: Container(
         height: height,
         color: Colors.white,
@@ -284,17 +283,24 @@ class _ImageErrorPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: context.theme.colorScheme.surfaceContainerHighest,
-      child: const Center(
-        child: Icon(Icons.broken_image_outlined, size: 32, color: Colors.grey),
+      color: isDark ? AppColors.darkCard : AppColors.lightCard,
+      child: Center(
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: 32,
+          color: isDark
+              ? AppColors.darkTextSecondary
+              : AppColors.lightTextSecondary,
+        ),
       ),
     );
   }
 }
 
 // -------------------------------------------------------
-// 荧光高亮 Widget — 模拟荧光笔效果
+// 荧光高亮 — Volt 荧光笔效果（互动数字）
 // -------------------------------------------------------
 
 class _GlowHighlight extends StatelessWidget {
@@ -305,10 +311,13 @@ class _GlowHighlight extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.x3,
+        vertical: 1,
+      ),
       decoration: BoxDecoration(
-        color: _kGraffitiNeon.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(2),
+        color: AppColors.voltSurface,
+        borderRadius: AppRadius.bXS,
       ),
       child: child,
     );
@@ -338,17 +347,20 @@ class _GraffitiPillButton extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.x12,
+          vertical: AppSpacing.x6,
+        ),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.bPill,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 16, color: Colors.white),
             if (label.isNotEmpty) ...[
-              const SizedBox(width: 4),
+              AppSpacing.hGapXS,
               _GlowHighlight(
                 child: Text(
                   label,

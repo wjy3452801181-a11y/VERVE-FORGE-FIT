@@ -8,17 +8,14 @@ import 'package:shimmer/shimmer.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_spacing.dart';
+import '../../../app/theme/app_radius.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../notification/providers/notification_provider.dart';
 import '../domain/post_model.dart';
 import '../providers/post_provider.dart';
 import 'widgets/post_card.dart';
-
-// -------------------------------------------------------
-// 涂鸦风格局部常量（仅 Feed 页内使用）
-// -------------------------------------------------------
-const _kGraffitiNeon = Color(0xFFCDFF00); // 荧光黄绿
 
 /// 动态流页 — Tab 1
 /// 3 个子 Tab：关注 / 附近 / 推荐
@@ -94,14 +91,16 @@ class _FeedPageState extends ConsumerState<FeedPage>
         ],
         bottom: TabBar(
           controller: _tabController,
-          // 荧光黄绿粗条指示器（荧光笔效果）
-          indicator: BoxDecoration(
-            color: _kGraffitiNeon,
-            borderRadius: BorderRadius.circular(4),
+          // Volt 荧光条指示器（荧光笔效果）
+          indicator: const BoxDecoration(
+            color: AppColors.volt,
+            borderRadius: AppRadius.bXS,
           ),
           indicatorSize: TabBarIndicatorSize.tab,
-          indicatorPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          indicatorPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm + 2,
+          ),
           labelColor: AppColors.primary,
           unselectedLabelColor:
               context.theme.colorScheme.onSurface.withValues(alpha: 0.5),
@@ -120,7 +119,7 @@ class _FeedPageState extends ConsumerState<FeedPage>
       ),
       body: Column(
         children: [
-          // 【性能优化 Step 2】用 Consumer + select 精细监听 hasNewPosts
+          // 用 Consumer + select 精细监听 hasNewPosts
           // 仅当 bool 值实际变化时才 rebuild 横幅区域，不会触发整个 Scaffold 重建
           Consumer(
             builder: (context, ref, _) {
@@ -167,7 +166,7 @@ class _FeedPageState extends ConsumerState<FeedPage>
 }
 
 // -------------------------------------------------------
-// 新动态提示横幅 — 涂鸦贴纸风格
+// 新动态提示横幅 — 涂鸦贴纸风格，volt 文字
 // -------------------------------------------------------
 
 class _NewPostsBanner extends StatelessWidget {
@@ -180,27 +179,33 @@ class _NewPostsBanner extends StatelessWidget {
     return GestureDetector(
       onTap: onRefresh,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
         child: Transform.rotate(
           angle: -1.5 * math.pi / 180, // -1.5°
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            padding: const EdgeInsets.symmetric(
+              vertical: AppSpacing.x10,
+              horizontal: AppSpacing.md,
+            ),
             decoration: BoxDecoration(
               color: Colors.black87,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: AppRadius.bXS,
               border: Border.all(color: Colors.white, width: 2),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.arrow_upward,
-                    size: 16, color: _kGraffitiNeon),
-                const SizedBox(width: 6),
+                    size: 16, color: AppColors.volt),
+                AppSpacing.hGapSM,
                 Text(
                   context.l10n.postNewAvailable.toUpperCase(),
                   style: AppTextStyles.caption.copyWith(
-                    color: _kGraffitiNeon,
+                    color: AppColors.volt,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.5,
                   ),
@@ -223,10 +228,6 @@ class _FollowingTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 【性能优化 Step 2】select 精细化监听
-    // 仅提取 loading/error/data 状态 + 列表长度作为 rebuild 判据
-    // 列表内容的变化（如某条动态点赞数+1）不会触发整个 Tab rebuild，
-    // 因为 _PostListView 内部的 PostCard 各自持有独立数据
     final postsAsync = ref.watch(
       feedFollowingProvider.select((state) => (
         isLoading: state.isLoading,
@@ -278,7 +279,6 @@ class _NearbyTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 【性能优化 Step 2】select 精细化 — 同 _FollowingTab
     final postsAsync = ref.watch(
       feedNearbyProvider.select((state) => (
         isLoading: state.isLoading,
@@ -330,7 +330,6 @@ class _RecommendTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 【性能优化 Step 2】select 精细化 — 同 _FollowingTab / _NearbyTab
     final postsAsync = ref.watch(
       feedRecommendProvider.select((state) => (
         isLoading: state.isLoading,
@@ -375,7 +374,6 @@ class _RecommendTab extends ConsumerWidget {
 
 // -------------------------------------------------------
 // 通用动态列表 — 下拉刷新 + 上拉加载
-// 【性能优化】添加尾部 loading 指示器 + hasMore 控制
 // -------------------------------------------------------
 
 class _PostListView extends StatefulWidget {
@@ -419,7 +417,6 @@ class _PostListViewState extends State<_PostListView> {
 
   @override
   Widget build(BuildContext context) {
-    // 【性能优化】列表末尾添加 loading / "没有更多" 指示器
     final itemCount = widget.posts.length + 1; // +1 用于尾部指示器
 
     return RefreshIndicator(
@@ -429,11 +426,9 @@ class _PostListViewState extends State<_PostListView> {
         controller: _scrollController,
         itemCount: itemCount,
         itemBuilder: (context, index) {
-          // 尾部指示器
           if (index == widget.posts.length) {
-            return _buildFooter();
+            return _buildFooter(context);
           }
-
           final post = widget.posts[index];
           return PostCard(
             post: post,
@@ -447,15 +442,22 @@ class _PostListViewState extends State<_PostListView> {
   }
 
   /// 列表尾部：加载中 / 没有更多
-  Widget _buildFooter() {
+  Widget _buildFooter(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (widget.hasMore) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         child: Center(
           child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 1.5,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.lightTextSecondary,
+            ),
           ),
         ),
       );
@@ -463,15 +465,15 @@ class _PostListViewState extends State<_PostListView> {
 
     // 已加载全部
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Center(
         child: Text(
           '— 已经到底了 —',
           style: AppTextStyles.caption.copyWith(
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.3),
+            color: isDark
+                ? AppColors.darkTextSecondary.withValues(alpha: 0.5)
+                : AppColors.lightTextSecondary.withValues(alpha: 0.5),
+            letterSpacing: 1.0,
           ),
         ),
       ),
@@ -480,7 +482,7 @@ class _PostListViewState extends State<_PostListView> {
 }
 
 // -------------------------------------------------------
-// 【性能优化】Feed 骨架屏列表 — Shimmer 占位
+// Feed 骨架屏列表 — Shimmer 占位
 // 模拟 PostCard 布局结构，首帧加载感知 < 2s
 // -------------------------------------------------------
 
@@ -491,12 +493,12 @@ class _FeedSkeletonList extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
+      baseColor: isDark ? AppColors.darkCard : AppColors.lightCard,
       highlightColor:
-          isDark ? const Color(0xFF3A3A3A) : const Color(0xFFF5F5F5),
+          isDark ? AppColors.darkCardHover : AppColors.lightCardHover,
       child: ListView.builder(
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: 5, // 显示 5 个骨架卡片
+        itemCount: 5,
         itemBuilder: (context, index) => const _PostSkeletonCard(),
       ),
     );
@@ -510,112 +512,89 @@ class _PostSkeletonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.x12,
+        vertical: AppSpacing.x6,
       ),
-      child: Column(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.x14,
+        vertical: AppSpacing.x12,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: AppRadius.bSM,
+      ),
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 作者行骨架：圆形头像 + 两行文字
           Row(
             children: [
-              // 头像占位
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 10),
+              _Bone(width: 40, height: 40, circle: true),
+              SizedBox(width: AppSpacing.x10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 昵称占位
-                    Container(
-                      width: 100,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    // 时间占位
-                    Container(
-                      width: 60,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
+                    _Bone(width: 100, height: 14),
+                    SizedBox(height: AppSpacing.x6),
+                    _Bone(width: 60, height: 10),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: AppSpacing.x10),
 
           // 文字内容占位（2 行）
-          Container(
-            width: double.infinity,
-            height: 12,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            width: 200,
-            height: 12,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 10),
+          _Bone(height: 12),
+          SizedBox(height: AppSpacing.x6),
+          _Bone(width: 200, height: 12),
+          SizedBox(height: AppSpacing.x10),
 
           // 图片占位
-          Container(
-            width: double.infinity,
-            height: 160,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 10),
+          _Bone(height: 160),
+          SizedBox(height: AppSpacing.x10),
 
           // 互动行占位（两个药丸）
           Row(
             children: [
-              Container(
-                width: 64,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                width: 64,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
+              _Bone(width: 64, height: 28, radius: AppRadius.pill),
+              SizedBox(width: AppSpacing.x12),
+              _Bone(width: 64, height: 28, radius: AppRadius.pill),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 骨架占位块 — Shimmer 子元素必须用白色，由外层 Shimmer.fromColors 着色
+class _Bone extends StatelessWidget {
+  final double? width;
+  final double? height;
+  final bool circle;
+  final double? radius;
+
+  const _Bone({
+    this.width,
+    this.height,
+    this.circle = false,
+    this.radius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width ?? double.infinity,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: circle ? BoxShape.circle : BoxShape.rectangle,
+        borderRadius: circle
+            ? null
+            : BorderRadius.circular(radius ?? AppRadius.xs),
       ),
     );
   }

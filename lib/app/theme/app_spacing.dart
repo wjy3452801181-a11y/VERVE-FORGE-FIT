@@ -135,9 +135,11 @@ class AppSpacing {
 
   // 常用非标准高度
   static const Widget vGap6   = SizedBox(height: x6);
+  static const Widget vGap10  = SizedBox(height: x10);
   static const Widget vGap12  = SizedBox(height: x12);
   static const Widget vGap14  = SizedBox(height: x14);
   static const Widget vGap20  = SizedBox(height: x20);
+  static const Widget hGap10  = SizedBox(width: x10);
   static const Widget hGap12  = SizedBox(width: x12);
   static const Widget hGap14  = SizedBox(width: x14);
 }
