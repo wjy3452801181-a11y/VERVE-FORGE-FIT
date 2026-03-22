@@ -171,6 +171,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
           // 清空聊天
           IconButton(
             icon: const Icon(Icons.delete_sweep_outlined, size: 22),
+            tooltip: context.l10n.aiChatClear,
             onPressed: messages.isEmpty
                 ? null
                 : () => _showClearDialog(context),
@@ -922,6 +923,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
                   color: AppColors.primary,
                   size: 22,
                 ),
+                tooltip: context.l10n.aiChatQuickPhrases,
                 onPressed: () {
                   setState(() => _showQuickPhrases = !_showQuickPhrases);
                 },
@@ -934,6 +936,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
                   color: context.colorScheme.onSurfaceVariant,
                   size: 22,
                 ),
+                tooltip: context.l10n.aiChatVoice,
                 onPressed: () {
                   ScaffoldMessenger.of(this.context).showSnackBar(
                     SnackBar(

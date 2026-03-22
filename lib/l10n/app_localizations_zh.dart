@@ -916,6 +916,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aiAvatarSaved => 'AI 分身已保存';
 
   @override
+  String get aiAvatarCreatedTitle => '你的 AI 分身已就绪！';
+
+  @override
+  String get aiAvatarCreatedSubtitle => '开始聊天，让分身更了解你';
+
+  @override
   String get aiAvatarEmpty => '还没有 AI 分身';
 
   @override
@@ -1312,6 +1318,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aiChatVoiceComingSoon => '语音输入即将上线';
 
   @override
+  String get aiChatClear => '清空对话';
+
+  @override
+  String get aiChatQuickPhrases => '快捷短语';
+
+  @override
+  String get aiChatVoice => '语音输入';
+
+  @override
   String get aiReplyFilteredHint => '分身回复被过滤（内容不合适）';
 
   @override
@@ -1331,6 +1346,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aiShareBtn => '分享我的分身';
+
+  @override
+  String get aiShareSignUpToChat => '注册后即可聊天';
 
   @override
   String get aiShareSubtitle => '将你的 AI 分身分享给好友';
@@ -2311,6 +2329,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get aiAvatarSaved => 'AI 分身已保存';
 
   @override
+  String get aiAvatarCreatedTitle => '你的 AI 分身已就绪！';
+
+  @override
+  String get aiAvatarCreatedSubtitle => '开始聊天，让分身更了解你';
+
+  @override
   String get aiAvatarEmpty => '还没有 AI 分身';
 
   @override
@@ -2707,6 +2731,15 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get aiChatVoiceComingSoon => '语音输入即将上线';
 
   @override
+  String get aiChatClear => '清空对话';
+
+  @override
+  String get aiChatQuickPhrases => '快捷短语';
+
+  @override
+  String get aiChatVoice => '语音输入';
+
+  @override
   String get aiReplyFilteredHint => '分身回复被过滤（内容不合适）';
 
   @override
@@ -2726,6 +2759,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get aiShareBtn => '分享我的分身';
+
+  @override
+  String get aiShareSignUpToChat => '注册后即可聊天';
 
   @override
   String get aiShareSubtitle => '将你的 AI 分身分享给好友';
@@ -3706,6 +3742,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get aiAvatarSaved => 'AI 分身已儲存';
 
   @override
+  String get aiAvatarCreatedTitle => '你的 AI 分身已就緒！';
+
+  @override
+  String get aiAvatarCreatedSubtitle => '開始聊天，讓分身更了解你';
+
+  @override
   String get aiAvatarEmpty => '還沒有 AI 分身';
 
   @override
@@ -4102,6 +4144,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get aiChatVoiceComingSoon => '語音輸入即將上線';
 
   @override
+  String get aiChatClear => '清空對話';
+
+  @override
+  String get aiChatQuickPhrases => '快捷短語';
+
+  @override
+  String get aiChatVoice => '語音輸入';
+
+  @override
   String get aiReplyFilteredHint => '分身回覆被過濾（內容不合適）';
 
   @override
@@ -4121,6 +4172,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get aiShareBtn => '分享我的分身';
+
+  @override
+  String get aiShareSignUpToChat => '註冊後即可聊天';
 
   @override
   String get aiShareSubtitle => '將你的 AI 分身分享給好友';

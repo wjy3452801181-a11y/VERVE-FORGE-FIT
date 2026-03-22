@@ -933,6 +933,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiAvatarSaved => 'AI avatar saved';
 
   @override
+  String get aiAvatarCreatedTitle => 'Your AI Twin is Ready!';
+
+  @override
+  String get aiAvatarCreatedSubtitle =>
+      'Start a conversation and let it get to know you';
+
+  @override
   String get aiAvatarEmpty => 'No AI avatar yet';
 
   @override
@@ -1347,6 +1354,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiChatVoiceComingSoon => 'Voice input coming soon';
 
   @override
+  String get aiChatClear => 'Clear conversation';
+
+  @override
+  String get aiChatQuickPhrases => 'Quick phrases';
+
+  @override
+  String get aiChatVoice => 'Voice input';
+
+  @override
   String get aiReplyFilteredHint => 'Reply filtered (content inappropriate)';
 
   @override
@@ -1369,6 +1385,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiShareBtn => 'Share My Avatar';
+
+  @override
+  String get aiShareSignUpToChat => 'Sign up to chat';
 
   @override
   String get aiShareSubtitle => 'Share your AI avatar with friends';

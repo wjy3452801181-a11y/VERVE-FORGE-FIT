@@ -82,7 +82,32 @@ class AiAvatarDetailPage extends ConsumerWidget {
         child: SafeArea(
           child: avatarAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text(context.l10n.commonError)),
+            error: (e, _) => Center(
+              child: Padding(
+                padding: AppSpacing.cardPadding,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.cloud_off_rounded,
+                        size: 48, color: Colors.grey.shade400),
+                    AppSpacing.vGapMD,
+                    Text(context.l10n.commonError,
+                        style: AppTextStyles.subtitle,
+                        textAlign: TextAlign.center),
+                    AppSpacing.vGapLG,
+                    FilledButton.icon(
+                      onPressed: () =>
+                          ref.refresh(currentAiAvatarProvider),
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: Text(context.l10n.commonRetry),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.info,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             data: (avatar) {
               if (avatar == null) {
                 return _buildEmptyState(context);
@@ -111,6 +136,9 @@ class AiAvatarDetailPage extends ConsumerWidget {
             onPressed: () => context.push(AppRoutes.aiAvatarCreate),
             icon: const Icon(Icons.add),
             label: Text(context.l10n.aiAvatarCreate),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.info,
+            ),
           ),
         ],
       ),
@@ -253,10 +281,6 @@ class AiAvatarDetailPage extends ConsumerWidget {
         ),
         AppSpacing.vGap12,
 
-        // ===== 分享我的分身 — 蓝色渐变 CTA =====
-        _buildShareCTA(context, avatar),
-        AppSpacing.vGap12,
-
         // ===== 性格标签 =====
         if (avatar.personalityTraits.isNotEmpty) ...[
           _buildGlassCard(
@@ -377,25 +401,27 @@ class AiAvatarDetailPage extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  // 状态指示灯
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: avatar.autoReplyEnabled
-                          ? AppColors.info
-                          : Colors.grey.shade400,
-                      boxShadow: avatar.autoReplyEnabled
-                          ? [
-                              BoxShadow(
-                                color:
-                                    AppColors.info.withValues(alpha: 0.4),
-                                blurRadius: 6,
-                                spreadRadius: 1,
-                              ),
-                            ]
-                          : null,
+                  // 状态指示灯（纯装饰，排除语义树）
+                  ExcludeSemantics(
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: avatar.autoReplyEnabled
+                            ? AppColors.info
+                            : Colors.grey.shade400,
+                        boxShadow: avatar.autoReplyEnabled
+                            ? [
+                                BoxShadow(
+                                  color:
+                                      AppColors.info.withValues(alpha: 0.4),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
+                      ),
                     ),
                   ),
                   AppSpacing.hGap10,
@@ -494,6 +520,10 @@ class AiAvatarDetailPage extends ConsumerWidget {
             ],
           ),
         ),
+        AppSpacing.vGap12,
+
+        // ===== 分享我的分身 — 蓝色渐变 CTA =====
+        _buildShareCTA(context, avatar),
         AppSpacing.vGap20,
 
         // ===== 底部 CTA：更新我的画像 — 蓝色渐变按钮 =====
@@ -503,7 +533,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
     );
   }
 
-  /// "分享我的分身"CTA — 蓝色渐变按钮 + 发光效果
+  /// "分享我的分身"CTA — 轮廓玻璃按钮（次要操作）
   Widget _buildShareCTA(BuildContext context, AiAvatarModel avatar) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -515,23 +545,12 @@ class AiAvatarDetailPage extends ConsumerWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.md),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1E88E5), Color(0xFF42A5F5)],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.info.withValues(alpha: 0.25),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            color: isDark
+                ? AppColors.info.withValues(alpha: 0.06)
+                : AppColors.info.withValues(alpha: 0.04),
             border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.15)
-                  : Colors.white.withValues(alpha: 0.6),
-              width: 0.5,
+              color: AppColors.info.withValues(alpha: 0.35),
+              width: 1.5,
             ),
           ),
           child: Material(
@@ -546,12 +565,12 @@ class AiAvatarDetailPage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.share_rounded,
-                        color: Colors.white, size: 20),
+                        color: AppColors.info, size: 20),
                     AppSpacing.hGap10,
                     Text(
                       context.l10n.aiShareBtn,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.info,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -580,32 +599,16 @@ class AiAvatarDetailPage extends ConsumerWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.md),
-            gradient: isUpdating
-                ? LinearGradient(
-                    colors: [
-                      Colors.grey.shade500,
-                      Colors.grey.shade400,
-                    ],
-                  )
-                : const LinearGradient(
-                    colors: [AppColors.info, Color(0xFF64B5F6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-            boxShadow: isUpdating
-                ? null
-                : [
-                    BoxShadow(
-                      color: AppColors.info.withValues(alpha: 0.3),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+            color: isUpdating
+                ? Colors.grey.shade400.withValues(alpha: 0.12)
+                : isDark
+                    ? AppColors.info.withValues(alpha: 0.06)
+                    : AppColors.info.withValues(alpha: 0.04),
             border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.15)
-                  : Colors.white.withValues(alpha: 0.6),
-              width: 0.5,
+              color: isUpdating
+                  ? Colors.grey.shade400.withValues(alpha: 0.4)
+                  : AppColors.info.withValues(alpha: 0.35),
+              width: 1.5,
             ),
           ),
           child: Material(
@@ -622,31 +625,31 @@ class AiAvatarDetailPage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (isUpdating) ...[
-                      const SizedBox(
+                      SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: Colors.grey.shade500,
                         ),
                       ),
                       AppSpacing.hGap10,
                       Text(
                         context.l10n.aiProfileUpdating,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ] else ...[
                       const Icon(Icons.auto_awesome_rounded,
-                          color: Colors.white, size: 20),
+                          color: AppColors.info, size: 20),
                       AppSpacing.hGap10,
                       Text(
                         context.l10n.aiProfileManualUpdateBtn,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.info,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),

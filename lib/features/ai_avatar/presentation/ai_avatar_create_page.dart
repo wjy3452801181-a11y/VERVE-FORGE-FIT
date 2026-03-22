@@ -146,7 +146,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(1),
                   color: stepBefore < _currentStep
-                      ? AppColors.primary
+                      ? AppColors.info
                       : context.colorScheme.outlineVariant,
                 ),
               ),
@@ -166,12 +166,12 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: isActive
-                      ? AppColors.primary
+                      ? AppColors.info
                       : context.colorScheme.surfaceContainerHighest,
                   boxShadow: isCurrent
                       ? [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.4),
+                            color: AppColors.info.withValues(alpha: 0.4),
                             blurRadius: 12,
                             spreadRadius: 2,
                           )
@@ -196,7 +196,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
                 steps[stepIndex],
                 style: AppTextStyles.label.copyWith(
                   color: isActive
-                      ? AppColors.primary
+                      ? AppColors.info
                       : context.colorScheme.onSurfaceVariant,
                   fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
                 ),
@@ -525,6 +525,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
             child: FilledButton(
               onPressed: _isLoading ? null : _nextStep,
               style: FilledButton.styleFrom(
+                backgroundColor: AppColors.info,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -661,8 +662,17 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
           );
 
       if (mounted) {
-        ErrorHandler.showSuccess(context, context.l10n.aiAvatarSaved);
-        Navigator.pop(context);
+        await _showCreationSuccessOverlay(
+          avatarEmoji: _selectedPresetKey != null
+              ? (AiAvatarModel.presetAvatars
+                      .where((p) => p.key == _selectedPresetKey)
+                      .firstOrNull
+                      ?.emoji ??
+                  '🤖')
+              : '🤖',
+          avatarName: _nameController.text.trim(),
+        );
+        if (mounted) Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
@@ -687,5 +697,113 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
         _selectedPresetKey = null; // 清除预设选中
       });
     }
+  }
+
+  /// 分身创建成功庆祝弹窗 — 全屏模态 + 自动关闭
+  Future<void> _showCreationSuccessOverlay({
+    required String avatarEmoji,
+    required String avatarName,
+  }) async {
+    await showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black87,
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (ctx, anim, _, child) {
+        return FadeTransition(
+          opacity: anim,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.85, end: 1.0).animate(
+              CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
+            ),
+            child: child,
+          ),
+        );
+      },
+      pageBuilder: (ctx, _, __) {
+        // 自动 1.8s 后关闭
+        Future.delayed(const Duration(milliseconds: 1800), () {
+          if (ctx.mounted) Navigator.of(ctx).pop();
+        });
+        return _AvatarCreatedOverlay(
+          avatarEmoji: avatarEmoji,
+          avatarName: avatarName,
+        );
+      },
+    );
+  }
+}
+
+// ============================================================
+// 分身创建成功庆祝覆盖层 — 全屏模态 + 发光效果
+// ============================================================
+class _AvatarCreatedOverlay extends StatelessWidget {
+  final String avatarEmoji;
+  final String avatarName;
+
+  const _AvatarCreatedOverlay({
+    required this.avatarEmoji,
+    required this.avatarName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: AppSpacing.cardPadding,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 发光头像
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.info.withValues(alpha: 0.12),
+                border: Border.all(
+                  color: AppColors.info.withValues(alpha: 0.4),
+                  width: 2.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.info.withValues(alpha: 0.35),
+                    blurRadius: 40,
+                    spreadRadius: 8,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(avatarEmoji,
+                    style: const TextStyle(fontSize: 48)),
+              ),
+            ),
+            AppSpacing.vGapLG,
+            Text(
+              context.l10n.aiAvatarCreatedTitle,
+              style: AppTextStyles.h2.copyWith(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            AppSpacing.vGapSM,
+            Text(
+              avatarName,
+              style: AppTextStyles.subtitle.copyWith(
+                color: AppColors.info,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            AppSpacing.vGapSM,
+            Text(
+              context.l10n.aiAvatarCreatedSubtitle,
+              style: AppTextStyles.body.copyWith(
+                color: Colors.white.withValues(alpha: 0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

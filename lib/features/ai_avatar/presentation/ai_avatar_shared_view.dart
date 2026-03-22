@@ -8,6 +8,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/extensions/context_extensions.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../domain/ai_avatar_model.dart';
 import '../providers/ai_avatar_provider.dart';
 import 'widgets/personality_chip.dart';
@@ -98,6 +99,7 @@ class AiAvatarSharedView extends ConsumerWidget {
     Map<String, dynamic> data,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isLoggedIn = ref.watch(isLoggedInProvider);
     final name = data['name'] as String? ?? '';
     final avatarId = data['id'] as String?;
     final avatarUrl = data['avatar_url'] as String?;
@@ -248,7 +250,7 @@ class AiAvatarSharedView extends ConsumerWidget {
         ),
         AppSpacing.vGapXL,
 
-        // 聊天入口按钮
+        // 聊天入口按钮 — 已登录显示"立即聊天"，未登录显示"注册后聊天"
         ClipRRect(
           borderRadius: BorderRadius.circular(AppSpacing.md),
           child: BackdropFilter(
@@ -278,34 +280,53 @@ class AiAvatarSharedView extends ConsumerWidget {
               ),
               child: Material(
                 color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(AppSpacing.md),
-                  onTap: () {
-                    // 跳转到分身聊天页（携带 avatarId）
-                    if (avatarId != null) {
-                      context.push('${AppRoutes.aiAvatarChat}/$avatarId');
-                    } else {
-                      context.push(AppRoutes.aiAvatarChat);
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.x20, vertical: AppSpacing.md),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.chat_rounded,
-                            color: Colors.white, size: 20),
-                        AppSpacing.hGap10,
-                        Text(
-                          context.l10n.aiChatStartChat,
-                          style: const TextStyle(
+                child: Semantics(
+                  label: '${context.l10n.aiChatStartChat} — $name',
+                  button: true,
+                  excludeSemantics: true,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(AppSpacing.md),
+                    onTap: () {
+                      if (isLoggedIn) {
+                        // 已登录：直接进入聊天
+                        if (avatarId != null) {
+                          context.push('${AppRoutes.aiAvatarChat}/$avatarId');
+                        } else {
+                          context.push(AppRoutes.aiAvatarChat);
+                        }
+                      } else {
+                        // 未登录：跳转登录页，携带 shareToken 以便登录后回到此页
+                        context.push(
+                          '${AppRoutes.login}?redirect=${AppRoutes.aiAvatarShared}/$shareToken',
+                        );
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.x20, vertical: AppSpacing.md),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            isLoggedIn
+                                ? Icons.chat_rounded
+                                : Icons.person_add_rounded,
                             color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                            size: 20,
                           ),
-                        ),
-                      ],
+                          AppSpacing.hGap10,
+                          Text(
+                            isLoggedIn
+                                ? context.l10n.aiChatStartChat
+                                : context.l10n.aiShareSignUpToChat,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

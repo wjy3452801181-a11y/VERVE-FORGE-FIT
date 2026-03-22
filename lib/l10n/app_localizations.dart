@@ -1686,20 +1686,20 @@ abstract class AppLocalizations {
 
   /// No description provided for @profileSectionTraining.
   ///
-  /// In en, this message translates to:
-  /// **'TRAINING'**
+  /// In zh_CN, this message translates to:
+  /// **'训练'**
   String get profileSectionTraining;
 
   /// No description provided for @profileSectionSocial.
   ///
-  /// In en, this message translates to:
-  /// **'SOCIAL'**
+  /// In zh_CN, this message translates to:
+  /// **'社交'**
   String get profileSectionSocial;
 
   /// No description provided for @profileSectionAccount.
   ///
-  /// In en, this message translates to:
-  /// **'ACCOUNT'**
+  /// In zh_CN, this message translates to:
+  /// **'账户'**
   String get profileSectionAccount;
 
   /// No description provided for @buddyListTitle.
@@ -1887,6 +1887,18 @@ abstract class AppLocalizations {
   /// In zh_CN, this message translates to:
   /// **'AI 分身已保存'**
   String get aiAvatarSaved;
+
+  /// No description provided for @aiAvatarCreatedTitle.
+  ///
+  /// In zh_CN, this message translates to:
+  /// **'你的 AI 分身已就绪！'**
+  String get aiAvatarCreatedTitle;
+
+  /// No description provided for @aiAvatarCreatedSubtitle.
+  ///
+  /// In zh_CN, this message translates to:
+  /// **'开始聊天，让分身更了解你'**
+  String get aiAvatarCreatedSubtitle;
 
   /// No description provided for @aiAvatarEmpty.
   ///
@@ -2674,6 +2686,24 @@ abstract class AppLocalizations {
   /// **'语音输入即将上线'**
   String get aiChatVoiceComingSoon;
 
+  /// No description provided for @aiChatClear.
+  ///
+  /// In zh_CN, this message translates to:
+  /// **'清空对话'**
+  String get aiChatClear;
+
+  /// No description provided for @aiChatQuickPhrases.
+  ///
+  /// In zh_CN, this message translates to:
+  /// **'快捷短语'**
+  String get aiChatQuickPhrases;
+
+  /// No description provided for @aiChatVoice.
+  ///
+  /// In zh_CN, this message translates to:
+  /// **'语音输入'**
+  String get aiChatVoice;
+
   /// No description provided for @aiReplyFilteredHint.
   ///
   /// In zh_CN, this message translates to:
@@ -2715,6 +2745,12 @@ abstract class AppLocalizations {
   /// In zh_CN, this message translates to:
   /// **'分享我的分身'**
   String get aiShareBtn;
+
+  /// No description provided for @aiShareSignUpToChat.
+  ///
+  /// In zh_CN, this message translates to:
+  /// **'注册后即可聊天'**
+  String get aiShareSignUpToChat;
 
   /// No description provided for @aiShareSubtitle.
   ///
