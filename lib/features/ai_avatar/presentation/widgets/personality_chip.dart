@@ -23,7 +23,7 @@ class PersonalityChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final info = _traitInfo(context, trait);
 
-    return GestureDetector(
+    final chip = GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
@@ -76,6 +76,12 @@ class PersonalityChip extends StatelessWidget {
         ),
       ),
     );
+
+    // 非交互模式（onTap == null）：告知屏幕阅读器这是装饰性内容，不可操作
+    if (onTap == null) {
+      return ExcludeSemantics(child: chip);
+    }
+    return chip;
   }
 
   /// 标签 key → emoji + l10n 显示名称

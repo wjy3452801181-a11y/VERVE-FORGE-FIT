@@ -45,6 +45,9 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   /// 页面仅保留 _initialLoaded 标记，用于首次进入时加载历史
   bool _initialLoaded = false;
 
+  /// 是否显示「滚到底部」FAB（用户向上滑动超过 100px 时出现）
+  bool _showScrollToBottom = false;
+
   /// 本次会话发送计数（用于提示用户可手动更新画像）
   int _sessionMessageCount = 0;
 
@@ -92,6 +95,19 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
         ref.read(aiAvatarChatProvider.notifier).loadHistory();
       }
     });
+
+    // 「滚到底部」FAB：当用户离底部超过 100px 时显示
+    _scrollController.addListener(_onScrollChanged);
+  }
+
+  void _onScrollChanged() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    final distanceFromBottom = pos.maxScrollExtent - pos.pixels;
+    final shouldShow = distanceFromBottom > 100;
+    if (shouldShow != _showScrollToBottom) {
+      setState(() => _showScrollToBottom = shouldShow);
+    }
   }
 
   @override
@@ -206,15 +222,42 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
               if (ref.watch(autoReplyActiveProvider))
                 _buildAutoReplyBanner(isDark),
 
-              // 消息列表
+              // 消息列表 + 「滚到底部」FAB
               // 【性能优化】初次加载历史时显示骨架屏
               Expanded(
-                child: messages.isEmpty && !_isSending && isLoadingHistory
-                    ? const _ChatSkeletonList()
-                    : messages.isEmpty && !_isSending
-                        ? _buildEmptyState(context, avatarEmoji)
-                        : _buildMessageList(
-                            messages, avatar, avatarEmoji, isLoadingHistory),
+                child: Stack(
+                  children: [
+                    messages.isEmpty && !_isSending && isLoadingHistory
+                        ? const _ChatSkeletonList()
+                        : messages.isEmpty && !_isSending
+                            ? _buildEmptyState(context, avatarEmoji)
+                            : _buildMessageList(
+                                messages, avatar, avatarEmoji, isLoadingHistory),
+
+                    // 「滚到底部」FAB — 用户向上滑超过 100px 时出现
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
+                      bottom: _showScrollToBottom ? 12 : -56,
+                      right: 12,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: _showScrollToBottom ? 1.0 : 0.0,
+                        child: Tooltip(
+                          message: '回到最新消息',
+                          child: FloatingActionButton.small(
+                            heroTag: 'chat_scroll_to_bottom',
+                            backgroundColor: AppColors.info,
+                            foregroundColor: Colors.white,
+                            elevation: 4,
+                            onPressed: _scrollToBottom,
+                            child: const Icon(Icons.keyboard_arrow_down_rounded, size: 22),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               // 快捷短语栏
