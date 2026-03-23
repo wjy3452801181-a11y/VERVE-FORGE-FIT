@@ -149,6 +149,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
     final chatState = ref.watch(aiAvatarChatProvider);
     final messages = chatState.messages;
     final isLoadingHistory = chatState.isLoadingHistory;
+    final historyLoadFailed = chatState.historyLoadFailed;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // 解析预设 emoji 头像
@@ -232,7 +233,8 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
                         : messages.isEmpty && !_isSending
                             ? _buildEmptyState(context, avatarEmoji)
                             : _buildMessageList(
-                                messages, avatar, avatarEmoji, isLoadingHistory),
+                                messages, avatar, avatarEmoji, isLoadingHistory,
+                                historyLoadFailed: historyLoadFailed),
 
                     // 「滚到底部」FAB — 用户向上滑超过 100px 时出现
                     AnimatedPositioned(
@@ -485,8 +487,12 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
     List<ChatMessage> messages,
     AiAvatarModel? avatar,
     String? avatarEmoji,
-    bool isLoadingHistory,
-  ) {
+    bool isLoadingHistory, {
+    bool historyLoadFailed = false,
+  }) {
+    // 顶部额外行数：加载中 OR 加载失败各占 1 行
+    final topExtra = (isLoadingHistory || historyLoadFailed) ? 1 : 0;
+
     return NotificationListener<ScrollNotification>(
       // 拦截滚动通知，避免手势冲突并处理上拉加载历史
       onNotification: (notification) =>
@@ -496,7 +502,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         itemCount: messages.length +
             (_isSending ? 1 : 0) +
-            (isLoadingHistory ? 1 : 0),
+            topExtra,
         reverse: false,
         // 禁用平台默认的过度滚动手势以避免与气泡长按冲突
         physics: const ClampingScrollPhysics(),
@@ -518,8 +524,50 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
             );
           }
 
+          // 顶部：加载失败重试提示
+          if (historyLoadFailed && index == 0) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: Center(
+                child: GestureDetector(
+                  onTap: () => ref
+                      .read(aiAvatarChatProvider.notifier)
+                      .retryLoadHistory(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.25),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.refresh_rounded,
+                            size: 14,
+                            color: AppColors.error.withValues(alpha: 0.7)),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          '加载失败，点击重试',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.error.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
           // 调整实际消息索引
-          final msgIndex = isLoadingHistory ? index - 1 : index;
+          final msgIndex = topExtra > 0 ? index - 1 : index;
 
           // 末尾：思考中气泡
           if (msgIndex == messages.length && _isSending) {
@@ -549,7 +597,9 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
     if (notification is ScrollUpdateNotification) {
       // 滑动到列表顶部 50px 以内时触发加载历史
       final chatState = ref.read(aiAvatarChatProvider);
-      if (notification.metrics.pixels < 50 && !chatState.isLoadingHistory) {
+      if (notification.metrics.pixels < 50 &&
+          !chatState.isLoadingHistory &&
+          !chatState.historyLoadFailed) {
         ref.read(aiAvatarChatProvider.notifier).loadHistory();
       }
     }

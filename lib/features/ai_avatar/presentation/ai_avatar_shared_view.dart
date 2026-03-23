@@ -11,6 +11,7 @@ import '../../../core/extensions/context_extensions.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../domain/ai_avatar_model.dart';
 import '../providers/ai_avatar_provider.dart';
+import 'widgets/ai_glass_card.dart';
 import 'widgets/personality_chip.dart';
 
 /// AI 分身公开展示页 — 通过分享链接打开
@@ -187,8 +188,7 @@ class AiAvatarSharedView extends ConsumerWidget {
 
         // 性格标签
         if (traits.isNotEmpty)
-          _buildGlassCard(
-            context: context,
+          AiGlassCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -215,8 +215,7 @@ class AiAvatarSharedView extends ConsumerWidget {
         if (traits.isNotEmpty) AppSpacing.vGap12,
 
         // 说话风格
-        _buildGlassCard(
-          context: context,
+        AiGlassCard(
           child: Row(
             children: [
               Container(
@@ -338,32 +337,4 @@ class AiAvatarSharedView extends ConsumerWidget {
     );
   }
 
-  /// 玻璃拟态卡片
-  Widget _buildGlassCard({
-    required BuildContext context,
-    required Widget child,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppSpacing.md),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: AppSpacing.cardPaddingCompact,
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : Colors.white.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(AppSpacing.md),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.white.withValues(alpha: 0.5),
-            ),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
 }

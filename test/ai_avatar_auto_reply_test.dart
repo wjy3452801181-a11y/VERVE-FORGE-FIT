@@ -244,6 +244,39 @@ void main() {
       expect(updated.messages[1].isAiGenerated, isTrue);
       expect(updated.messages[1].avatarName, '分身');
     });
+
+    test('historyLoadFailed 默认为 false', () {
+      const state = AiAvatarChatState();
+      expect(state.historyLoadFailed, isFalse);
+    });
+
+    test('copyWith 可设置 historyLoadFailed=true', () {
+      const state = AiAvatarChatState();
+      final failed = state.copyWith(historyLoadFailed: true);
+      expect(failed.historyLoadFailed, isTrue);
+      // 其他字段不受影响
+      expect(failed.messages, isEmpty);
+      expect(failed.isTyping, isFalse);
+      expect(failed.isLoadingHistory, isFalse);
+    });
+
+    test('historyLoadFailed 在 copyWith 中可被重置为 false', () {
+      const state =
+          AiAvatarChatState(historyLoadFailed: true, isLoadingHistory: true);
+      final cleared = state.copyWith(historyLoadFailed: false, isLoadingHistory: false);
+      expect(cleared.historyLoadFailed, isFalse);
+      expect(cleared.isLoadingHistory, isFalse);
+    });
+
+    test('加载中同时清除失败标记符合预期', () {
+      // 模拟 retryLoadHistory: 先清除 failed，然后设置 loading
+      const failed = AiAvatarChatState(historyLoadFailed: true);
+      final retrying = failed.copyWith(historyLoadFailed: false);
+      expect(retrying.historyLoadFailed, isFalse);
+      final loading = retrying.copyWith(isLoadingHistory: true);
+      expect(loading.isLoadingHistory, isTrue);
+      expect(loading.historyLoadFailed, isFalse);
+    });
   });
 
   // ===========================================

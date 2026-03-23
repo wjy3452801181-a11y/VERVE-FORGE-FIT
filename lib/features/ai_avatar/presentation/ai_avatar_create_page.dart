@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,6 +11,7 @@ import '../../../core/errors/error_handler.dart';
 import '../data/ai_avatar_repository.dart';
 import '../domain/ai_avatar_model.dart';
 import '../providers/ai_avatar_provider.dart';
+import 'widgets/ai_glass_card.dart';
 import 'widgets/personality_chip.dart';
 import 'widgets/style_selector.dart';
 import 'widgets/ai_consent_dialog.dart';
@@ -220,7 +220,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
         AppSpacing.vGap20,
 
         // 预设头像网格（玻璃拟态卡片）
-        _buildGlassCard(
+        AiGlassCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -252,7 +252,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
         const SizedBox(height: AppSpacing.x12),
 
         // 自定义上传入口
-        _buildGlassCard(
+        AiGlassCard(
           child: InkWell(
             onTap: _pickImage,
             borderRadius: BorderRadius.circular(AppSpacing.x12),
@@ -372,7 +372,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       children: [
-        _buildGlassCard(
+        AiGlassCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -438,7 +438,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       children: [
         // 名称输入
-        _buildGlassCard(
+        AiGlassCard(
           child: TextField(
             controller: _nameController,
             maxLength: 50,
@@ -454,7 +454,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
         AppSpacing.vGap12,
 
         // 说话风格选择器（含实时预览气泡）
-        _buildGlassCard(
+        AiGlassCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -475,7 +475,7 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
         AppSpacing.vGap12,
 
         // 自定义指令
-        _buildGlassCard(
+        AiGlassCard(
           child: TextField(
             controller: _customPromptController,
             maxLines: 3,
@@ -558,34 +558,6 @@ class _AiAvatarCreatePageState extends ConsumerState<AiAvatarCreatePage>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // 玻璃拟态卡片容器
-  // ============================================================
-  Widget _buildGlassCard({required Widget child}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppSpacing.md),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: AppSpacing.cardPaddingCompact,
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : Colors.white.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(AppSpacing.md),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.white.withValues(alpha: 0.5),
-            ),
-          ),
-          child: child,
-        ),
       ),
     );
   }

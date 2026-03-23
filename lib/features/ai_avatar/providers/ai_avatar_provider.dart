@@ -262,21 +262,27 @@ class AiAvatarChatState {
   final bool isTyping;
   final bool isLoadingHistory;
 
+  /// 上次分页加载是否失败（true 时在列表顶部显示重试提示）
+  final bool historyLoadFailed;
+
   const AiAvatarChatState({
     this.messages = const [],
     this.isTyping = false,
     this.isLoadingHistory = false,
+    this.historyLoadFailed = false,
   });
 
   AiAvatarChatState copyWith({
     List<ChatMessage>? messages,
     bool? isTyping,
     bool? isLoadingHistory,
+    bool? historyLoadFailed,
   }) {
     return AiAvatarChatState(
       messages: messages ?? this.messages,
       isTyping: isTyping ?? this.isTyping,
       isLoadingHistory: isLoadingHistory ?? this.isLoadingHistory,
+      historyLoadFailed: historyLoadFailed ?? this.historyLoadFailed,
     );
   }
 }
@@ -401,8 +407,8 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
     if (_isLoadingHistory || !_hasMoreHistory) return;
     _isLoadingHistory = true;
 
-    // 更新 UI 状态：显示顶部 loading
-    state = state.copyWith(isLoadingHistory: true);
+    // 更新 UI 状态：显示顶部 loading，清除上次失败标记
+    state = state.copyWith(isLoadingHistory: true, historyLoadFailed: false);
 
     try {
       final avatar = _ref.read(currentAiAvatarProvider).valueOrNull;
@@ -454,11 +460,20 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
         state = state.copyWith(isLoadingHistory: false);
       }
     } catch (_) {
-      // 加载失败静默处理
-      state = state.copyWith(isLoadingHistory: false);
+      // 加载失败：暴露错误状态，让 UI 显示重试提示
+      state = state.copyWith(
+        isLoadingHistory: false,
+        historyLoadFailed: true,
+      );
     } finally {
       _isLoadingHistory = false;
     }
+  }
+
+  /// 重试加载历史消息（在 loadHistory 失败后调用）
+  Future<void> retryLoadHistory() async {
+    state = state.copyWith(historyLoadFailed: false);
+    await loadHistory();
   }
 
   /// 清空聊天记录

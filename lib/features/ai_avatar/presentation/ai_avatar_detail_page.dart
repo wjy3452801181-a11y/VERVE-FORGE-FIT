@@ -13,6 +13,7 @@ import '../../../core/errors/error_handler.dart';
 import '../domain/ai_avatar_model.dart';
 import '../providers/ai_avatar_provider.dart';
 import 'ai_avatar_share_sheet.dart';
+import 'widgets/ai_glass_card.dart';
 import 'widgets/personality_chip.dart';
 
 /// AI 分身详情/管理页 — 玻璃拟态 + 显眼聊天入口
@@ -155,8 +156,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
       padding: AppSpacing.cardPaddingCompact,
       children: [
         // ===== 头像 + 名称卡片 =====
-        _buildGlassCard(
-          context: context,
+        AiGlassCard(
           child: Row(
             children: [
               // 分身头像
@@ -213,8 +213,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
         AppSpacing.vGap12,
 
         // ===== 立即聊天 — 显眼的 CTA 按钮 =====
-        _buildGlassCard(
-          context: context,
+        AiGlassCard(
           child: InkWell(
             onTap: () => context.push(
               '${AppRoutes.aiAvatarChat}/${avatar.id}',
@@ -283,8 +282,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
 
         // ===== 性格标签 =====
         if (avatar.personalityTraits.isNotEmpty) ...[
-          _buildGlassCard(
-            context: context,
+          AiGlassCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -309,8 +307,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
         ],
 
         // ===== AI 画像信息卡片（只读展示，更新由底部按钮触发） =====
-        _buildGlassCard(
-          context: context,
+        AiGlassCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -394,8 +391,7 @@ class AiAvatarDetailPage extends ConsumerWidget {
         AppSpacing.vGap12,
 
         // ===== 自动回复开关（增强版） =====
-        _buildGlassCard(
-          context: context,
+        AiGlassCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -737,34 +733,6 @@ class AiAvatarDetailPage extends ConsumerWidget {
     }
   }
 
-  /// 玻璃拟态卡片容器
-  Widget _buildGlassCard({
-    required BuildContext context,
-    required Widget child,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppSpacing.md),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: AppSpacing.cardPaddingCompact,
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : Colors.white.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(AppSpacing.md),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.white.withValues(alpha: 0.5),
-            ),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
 
   /// 从 avatarUrl (preset:xxx) 解析 emoji
   String? _resolveAvatarEmoji(AiAvatarModel avatar) {
