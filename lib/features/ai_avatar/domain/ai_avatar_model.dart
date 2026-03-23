@@ -1,3 +1,10 @@
+/// 哨兵对象：区分 copyWith 中"调用方未传参"与"调用方显式传 null"
+const _sentinel = _Sentinel();
+
+class _Sentinel {
+  const _Sentinel();
+}
+
 /// AI 虚拟分身数据模型
 class AiAvatarModel {
   final String id;
@@ -80,32 +87,45 @@ class AiAvatarModel {
     };
   }
 
+  // 哨兵对象：区分"调用方未传参"与"调用方显式传 null"（定义于文件顶层 `_sentinel`）
+
   /// 复制修改
+  ///
+  /// 可选 nullable 字段（avatarUrl, aiConsentAt, profileUpdatedAt,
+  /// shareToken）：不传 → 保留原值；显式传 null → 清除为 null。
   AiAvatarModel copyWith({
     String? name,
-    String? avatarUrl,
+    Object? avatarUrl = _sentinel,
     List<String>? personalityTraits,
     String? speakingStyle,
     String? customPrompt,
     bool? autoReplyEnabled,
-    DateTime? aiConsentAt,
+    Object? aiConsentAt = _sentinel,
     Map<String, dynamic>? fitnessHabits,
-    DateTime? profileUpdatedAt,
-    String? shareToken,
+    Object? profileUpdatedAt = _sentinel,
+    Object? shareToken = _sentinel,
   }) {
     return AiAvatarModel(
       id: id,
       userId: userId,
       name: name ?? this.name,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
+      avatarUrl: identical(avatarUrl, _sentinel)
+          ? this.avatarUrl
+          : avatarUrl as String?,
       personalityTraits: personalityTraits ?? this.personalityTraits,
       speakingStyle: speakingStyle ?? this.speakingStyle,
       customPrompt: customPrompt ?? this.customPrompt,
       autoReplyEnabled: autoReplyEnabled ?? this.autoReplyEnabled,
-      aiConsentAt: aiConsentAt ?? this.aiConsentAt,
+      aiConsentAt: identical(aiConsentAt, _sentinel)
+          ? this.aiConsentAt
+          : aiConsentAt as DateTime?,
       fitnessHabits: fitnessHabits ?? this.fitnessHabits,
-      profileUpdatedAt: profileUpdatedAt ?? this.profileUpdatedAt,
-      shareToken: shareToken ?? this.shareToken,
+      profileUpdatedAt: identical(profileUpdatedAt, _sentinel)
+          ? this.profileUpdatedAt
+          : profileUpdatedAt as DateTime?,
+      shareToken: identical(shareToken, _sentinel)
+          ? this.shareToken
+          : shareToken as String?,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
     );

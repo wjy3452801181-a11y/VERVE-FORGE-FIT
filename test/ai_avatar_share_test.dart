@@ -742,7 +742,107 @@ void main() {
   });
 
   // =============================================================
-  // 12. Regression: ISSUE-002 — _isSharing 在 shareLink==null 时挂死
+  // 12. Regression: ISSUE-001 — copyWith 无法清除可空字段
+  //
+  // Found by /qa on 2026-03-23
+  // Report: .gstack/qa-reports/qa-report-verveforge-2026-03-23.md
+  //
+  // 修复前：copyWith 对 avatarUrl / aiConsentAt / profileUpdatedAt /
+  // shareToken 使用 `value ?? this.field`，调用方显式传 null 时被忽略，
+  // 字段无法清除。UI 层（撤销授权、移除头像）会因此保留旧数据。
+  //
+  // 修复后：引入文件级 `_sentinel` 哨兵常量，默认参数为 _sentinel，
+  // 通过 `identical(param, _sentinel)` 区分"未传参"与"显式 null"。
+  // =============================================================
+  group('Regression ISSUE-001: copyWith 可空字段清除', () {
+    test('avatarUrl 可被清除为 null', () {
+      final model = _makeAvatar(avatarUrl: 'preset:runner');
+      final updated = model.copyWith(avatarUrl: null);
+      expect(updated.avatarUrl, isNull);
+      expect(updated.id, model.id);
+    });
+
+    test('avatarUrl 不传参时保留原值', () {
+      final model = _makeAvatar(avatarUrl: 'preset:runner');
+      final updated = model.copyWith(name: '新名称');
+      expect(updated.avatarUrl, 'preset:runner');
+    });
+
+    test('aiConsentAt 可被清除为 null（撤销 AI 授权场景）', () {
+      final model = _makeAvatar(aiConsentAt: DateTime(2026, 3, 9));
+      final updated = model.copyWith(aiConsentAt: null);
+      expect(updated.aiConsentAt, isNull);
+    });
+
+    test('aiConsentAt 不传参时保留原值', () {
+      final consent = DateTime(2026, 3, 9);
+      final model = _makeAvatar(aiConsentAt: consent);
+      final updated = model.copyWith(autoReplyEnabled: true);
+      expect(updated.aiConsentAt, consent);
+    });
+
+    test('profileUpdatedAt 可被清除为 null', () {
+      final model = AiAvatarModel(
+        id: 'a1',
+        userId: 'u1',
+        name: '测试',
+        profileUpdatedAt: DateTime(2026, 3, 9),
+        createdAt: DateTime(2026, 3, 9),
+        updatedAt: DateTime(2026, 3, 9),
+      );
+      final updated = model.copyWith(profileUpdatedAt: null);
+      expect(updated.profileUpdatedAt, isNull);
+    });
+
+    test('profileUpdatedAt 不传参时保留原值', () {
+      final ts = DateTime(2026, 3, 9);
+      final model = AiAvatarModel(
+        id: 'a1',
+        userId: 'u1',
+        name: '测试',
+        profileUpdatedAt: ts,
+        createdAt: DateTime(2026, 3, 9),
+        updatedAt: DateTime(2026, 3, 9),
+      );
+      final updated = model.copyWith(name: '新');
+      expect(updated.profileUpdatedAt, ts);
+    });
+
+    test('shareToken 可被清除为 null', () {
+      final model = _makeAvatar(shareToken: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6');
+      final updated = model.copyWith(shareToken: null);
+      expect(updated.shareToken, isNull);
+    });
+
+    test('shareToken 不传参时保留原值', () {
+      final model = _makeAvatar(shareToken: 'abc123token');
+      final updated = model.copyWith(name: '新');
+      expect(updated.shareToken, 'abc123token');
+    });
+
+    test('非空 avatarUrl 赋值正常工作', () {
+      final model = _makeAvatar(avatarUrl: null);
+      final updated = model.copyWith(avatarUrl: 'preset:lifter');
+      expect(updated.avatarUrl, 'preset:lifter');
+    });
+
+    test('多字段同时修改：清除 aiConsentAt + 更新 name', () {
+      final model = _makeAvatar(
+        name: '旧名称',
+        aiConsentAt: DateTime(2026, 3, 9),
+      );
+      final updated = model.copyWith(
+        name: '新名称',
+        aiConsentAt: null,
+      );
+      expect(updated.name, '新名称');
+      expect(updated.aiConsentAt, isNull);
+      expect(updated.id, model.id);
+    });
+  });
+
+  // =============================================================
+  // 13. Regression: ISSUE-002 — _isSharing 在 shareLink==null 时挂死
   //
   // Found by /qa on 2026-03-23
   // Report: .gstack/qa-reports/qa-report-verveforge-2026-03-23.md
