@@ -43,6 +43,7 @@ lib/
 ├── core/                      # 公共工具、常量、异常处理
 ├── features/
 │   ├── ai_avatar/             # AI 虚拟分身
+│   │   ├── presentation/widgets/  # ai_glass_card.dart（玻璃拟态共享卡片）
 │   ├── auth/                  # 登录（Apple Sign-In）
 │   ├── buddy/                 # 伙伴发现 & 约练
 │   ├── challenge/             # 挑战赛
@@ -55,6 +56,10 @@ lib/
 ├── l10n/                      # 国际化（中文 / 英文）
 └── shared/widgets/            # 共享组件（CapCard 等）
 ```
+
+## 设计系统
+
+设计规范文档见 [`DESIGN.md`](./DESIGN.md)，包含：色彩系统、Inter 字体比例、AppSpacing 4px 网格、组件规范、AI Avatar 子品牌视觉语言、无障碍规则。
 
 ## 环境要求
 - Flutter SDK ≥ 3.24.0
