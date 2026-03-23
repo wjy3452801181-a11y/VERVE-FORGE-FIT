@@ -407,16 +407,21 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
     if (_isLoadingHistory || !_hasMoreHistory) return;
     _isLoadingHistory = true;
 
-    // 更新 UI 状态：显示顶部 loading，清除上次失败标记
-    state = state.copyWith(isLoadingHistory: true, historyLoadFailed: false);
+    // 更新 UI 状态：仅显示 loading indicator（不在此清除失败标记，
+    // 避免 avatar==null 早返回时意外清除，导致重试 UI 消失但未真正加载）
+    state = state.copyWith(isLoadingHistory: true);
 
     try {
       final avatar = _ref.read(currentAiAvatarProvider).valueOrNull;
       if (avatar == null) {
         _isLoadingHistory = false;
+        // 分身未加载时不清除 historyLoadFailed，避免重试 UI 意外消失
         state = state.copyWith(isLoadingHistory: false);
         return;
       }
+
+      // 确认将实际发起请求后，清除上次失败标记
+      state = state.copyWith(historyLoadFailed: false);
 
       // 时间游标：在 await 前快照，避免 await 期间 state.messages 被 sendMessage 修改
       // 导致 cursor 过期、历史消息重复或缺失

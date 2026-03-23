@@ -304,7 +304,7 @@ class AiAvatarRepository {
       return (data as List).cast<Map<String, dynamic>>();
     } catch (e) {
       _log.e('获取聊天历史失败', error: e);
-      return [];
+      rethrow;
     }
   }
 
