@@ -1,5 +1,18 @@
 # Changelog / 变更日志
 
+## [1.0.2] - 2026-03-23
+
+### Fixed
+- **ISSUE-001** — `AiAvatarModel.copyWith()` 无法清除 nullable 字段：引入 `_Sentinel` 哨兵模式，区分"未传参"与"显式传 null"，修复 AI 授权撤销、头像清除不生效的问题
+- **ISSUE-002** — 分享 Sheet `_isSharing` 加载圈永久悬挂：服务端返回 `null` shareLink 时现在正确重置状态并提示用户
+- **ISSUE-003** — 分享页"与 TA 聊天"始终打开自己的分身：新增 `aiAvatarChatByIdProvider` family provider，路由传参 `avatarId`，聊天 notifier 使用显式 avatarId
+- **F7** — copyWith sentinel 模式中 `as String?` 裸转型：改为带类型检查的安全转型，防止错误类型导致运行时 TypeError
+- **F2** — 分享页游客聊天路径 `currentUserId=''` 导致历史消息气泡方向全错：改用 `SupabaseClientHelper.currentUserId` 获取真实登录用户 ID
+- **F10** — 尾部斜杠深链接（`/ai-avatar-chat/`）可能传入空字符串 `avatarId` 到 Edge Function：路由层新增空字符串防护
+
+### Tests
+- 新增 19 个回归测试（`test/ai_avatar_share_test.dart`）覆盖全部修复路径
+
 ## [1.0.1] - 2026-03-22
 
 ### Added
