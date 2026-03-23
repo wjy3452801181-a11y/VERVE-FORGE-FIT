@@ -111,21 +111,21 @@ class AiAvatarModel {
       name: name ?? this.name,
       avatarUrl: identical(avatarUrl, _sentinel)
           ? this.avatarUrl
-          : avatarUrl as String?,
+          : (avatarUrl == null || avatarUrl is String ? avatarUrl as String? : this.avatarUrl),
       personalityTraits: personalityTraits ?? this.personalityTraits,
       speakingStyle: speakingStyle ?? this.speakingStyle,
       customPrompt: customPrompt ?? this.customPrompt,
       autoReplyEnabled: autoReplyEnabled ?? this.autoReplyEnabled,
       aiConsentAt: identical(aiConsentAt, _sentinel)
           ? this.aiConsentAt
-          : aiConsentAt as DateTime?,
+          : (aiConsentAt == null || aiConsentAt is DateTime ? aiConsentAt as DateTime? : this.aiConsentAt),
       fitnessHabits: fitnessHabits ?? this.fitnessHabits,
       profileUpdatedAt: identical(profileUpdatedAt, _sentinel)
           ? this.profileUpdatedAt
-          : profileUpdatedAt as DateTime?,
+          : (profileUpdatedAt == null || profileUpdatedAt is DateTime ? profileUpdatedAt as DateTime? : this.profileUpdatedAt),
       shareToken: identical(shareToken, _sentinel)
           ? this.shareToken
-          : shareToken as String?,
+          : (shareToken == null || shareToken is String ? shareToken as String? : this.shareToken),
       createdAt: createdAt,
       updatedAt: DateTime.now(),
     );

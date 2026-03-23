@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/ai_avatar_repository.dart';
 import '../domain/ai_avatar_model.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/network/supabase_client.dart';
 
 // ============================================================
 // 当前用户 AI 分身 Provider
@@ -437,7 +438,8 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
       final String currentUserId;
       if (_explicitAvatarId != null) {
         avatarId = _explicitAvatarId;
-        currentUserId = ''; // 访客聊天：无当前用户分身 ID
+        // 访客聊天：用当前登录用户 ID 区分己方消息；未登录时为空字符串（全部判为对方消息）
+        currentUserId = SupabaseClientHelper.currentUserId ?? '';
       } else {
         final avatar = _ref.read(currentAiAvatarProvider).valueOrNull;
         if (avatar == null) {

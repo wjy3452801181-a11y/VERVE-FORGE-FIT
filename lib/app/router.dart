@@ -363,12 +363,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       // AI 分身聊天页（支持 avatarId 路径参数）
       GoRoute(
         path: '${AppRoutes.aiAvatarChat}/:avatarId',
-        pageBuilder: (context, state) => MosaicPage(
-          key: state.pageKey,
-          child: AiAvatarChatPage(
-            avatarId: state.pathParameters['avatarId'],
-          ),
-        ),
+        pageBuilder: (context, state) {
+          // 防御：空字符串 avatarId（如尾部斜杠 URL）退化为无参数路径
+          final rawId = state.pathParameters['avatarId'];
+          final avatarId = (rawId != null && rawId.isNotEmpty) ? rawId : null;
+          return MosaicPage(
+            key: state.pageKey,
+            child: AiAvatarChatPage(avatarId: avatarId),
+          );
+        },
       ),
 
       // AI 分身聊天页（无参数兜底，使用当前分身）
