@@ -4,6 +4,7 @@ import 'package:verveforge/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:verveforge/features/ai_avatar/data/ai_avatar_repository.dart';
 import 'package:verveforge/features/ai_avatar/domain/ai_avatar_model.dart';
 import 'package:verveforge/features/ai_avatar/providers/ai_avatar_provider.dart';
 
@@ -739,6 +740,90 @@ void main() {
       }
     });
   });
+
+  // =============================================================
+  // 12. Regression: ISSUE-002 — _isSharing 在 shareLink==null 时挂死
+  //
+  // Found by /qa on 2026-03-23
+  // Report: .gstack/qa-reports/qa-report-verveforge-2026-03-23.md
+  //
+  // 修复前：_executeShare 中只有 `if (mounted && shareLink != null)` 分支会
+  // 重置 _isSharing。当服务端返回 null（无 link），分支不执行，_isSharing 永远
+  // 为 true，界面加载圈永久悬挂无法交互。
+  //
+  // 修复后：新增 else 分支，shareLink==null 时同样重置 _isSharing 并显示错误。
+  // =============================================================
+  group('Regression ISSUE-002: shareLink==null 时分享状态机', () {
+    test('AiAvatarShareNotifier.shareAvatar 返回 null 时状态应恢复至 AsyncData', () async {
+      // 模拟服务端返回 null（有响应但无 link）
+      final container = ProviderContainer(
+        overrides: [
+          aiAvatarRepositoryProvider.overrideWithValue(_FakeRepoNullLink()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(aiAvatarShareProvider.notifier);
+      // shareAvatar 正常完成（不抛异常），返回 null
+      final result = await notifier.shareAvatar(
+        avatarId: 'avatar-1',
+        targetType: 'feed',
+      );
+      // 返回值为 null
+      expect(result, isNull);
+      // Provider 状态应回到 AsyncData（非 loading、非 error）
+      final state = container.read(aiAvatarShareProvider);
+      expect(state, isA<AsyncData<void>>());
+    });
+
+    test('AiAvatarShareNotifier.shareAvatar 抛出异常时状态应恢复至 AsyncError', () async {
+      final container = ProviderContainer(
+        overrides: [
+          aiAvatarRepositoryProvider.overrideWithValue(_FakeRepoThrow()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(aiAvatarShareProvider.notifier);
+      // shareAvatar 抛异常 — 等同生产环境中 catch 分支触发
+      bool threw = false;
+      try {
+        await notifier.shareAvatar(
+          avatarId: 'avatar-1',
+          targetType: 'feed',
+        );
+      } catch (_) {
+        threw = true;
+      }
+      expect(threw, isTrue);
+      // 抛出后 Provider 状态应为 AsyncError（UI 层 catch 后会显示错误）
+      final state = container.read(aiAvatarShareProvider);
+      expect(state, isA<AsyncError<void>>());
+    });
+
+    test('shareAvatar 成功返回非空链接时 link 格式正确', () async {
+      const expectedLink = 'https://app.verveforge.com/ai-avatar-shared/abc123';
+      final container = ProviderContainer(
+        overrides: [
+          aiAvatarRepositoryProvider.overrideWithValue(
+            _FakeRepoSuccess(expectedLink),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(aiAvatarShareProvider.notifier);
+      final link = await notifier.shareAvatar(
+        avatarId: 'avatar-1',
+        targetType: 'feed',
+      );
+      expect(link, isNotNull);
+      expect(link!, isNotEmpty);
+      expect(Uri.tryParse(link), isNotNull);
+      final state = container.read(aiAvatarShareProvider);
+      expect(state, isA<AsyncData<void>>());
+    });
+  });
 }
 
 // =============================================================
@@ -752,4 +837,39 @@ class _MockAvatarNotifier extends CurrentAiAvatarNotifier {
 
   @override
   Future<AiAvatarModel?> build() async => _avatar;
+}
+
+// Regression ISSUE-002 mocks
+
+/// Fake repository — null 返回路径（服务端 200 但无 link）
+class _FakeRepoNullLink extends AiAvatarRepository {
+  @override
+  Future<String?> shareAvatar({
+    required String avatarId,
+    required String targetType,
+    String? targetId,
+  }) async => null;
+}
+
+/// Fake repository — 抛出 429 异常
+class _FakeRepoThrow extends AiAvatarRepository {
+  @override
+  Future<String?> shareAvatar({
+    required String avatarId,
+    required String targetType,
+    String? targetId,
+  }) async => throw Exception('429 Too Many Requests');
+}
+
+/// Fake repository — 成功返回链接
+class _FakeRepoSuccess extends AiAvatarRepository {
+  final String link;
+  _FakeRepoSuccess(this.link);
+
+  @override
+  Future<String?> shareAvatar({
+    required String avatarId,
+    required String targetType,
+    String? targetId,
+  }) async => link;
 }

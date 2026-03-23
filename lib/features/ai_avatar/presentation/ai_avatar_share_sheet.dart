@@ -417,6 +417,10 @@ class _AiAvatarShareSheetState extends ConsumerState<AiAvatarShareSheet> {
           _shareLink = shareLink;
           _isSharing = false;
         });
+      } else if (mounted) {
+        // 服务端返回 null（无 link）时重置状态，避免加载圈永久悬挂
+        ErrorHandler.showError(context, context.l10n.aiShareFailed);
+        setState(() => _isSharing = false);
       }
     } catch (e) {
       if (mounted) {
