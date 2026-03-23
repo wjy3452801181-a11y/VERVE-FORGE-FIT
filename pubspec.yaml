@@ -1,7 +1,7 @@
 name: verveforge
 description: "VerveForge — 运动社交 App：记录训练·发现伙伴·挑战自我"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.6.2

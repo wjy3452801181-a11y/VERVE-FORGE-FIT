@@ -1,5 +1,25 @@
 # Changelog / 变更日志
 
+## [1.0.1] - 2026-03-22
+
+### Added
+- **DESIGN.md** — 项目设计系统文档（色彩系统、排版、间距网格、组件规范、AI Avatar 子品牌视觉语言）
+- **AiGlassCard** 共享 Widget — 从三处重复的 `_buildGlassCard` 方法提取，统一玻璃拟态卡片实现
+- **聊天页滚动到底部 FAB** — 上滑超过 100px 时显示，带 AnimatedPositioned 入场动画
+- AI Avatar 页面新增 l10n 键（`aiAvatarAutoReplyBadge`、`aiAvatarOfflineBadge` 等）
+
+### Changed
+- **AI Avatar 聊天页**：历史消息加载失败时显示"加载失败，点击重试"芯片（替代静默失败）
+- `getChatHistory` 不再吞掉异常，改为 rethrow 以触发 provider 层错误处理
+- `loadHistory` 错误标记 (`historyLoadFailed`) 现在只在确认发起请求后才清除，避免 avatar 未加载时重试 UI 消失
+- **PersonalityChip** — 非交互展示模式（`onTap == null`）用 `ExcludeSemantics` 包裹，屏幕阅读器不公告纯装饰性芯片
+
+### Fixed
+- AI Avatar 详情页、创建页、分享页中五处生产崩溃和数据完整性问题
+- 设计系统 token 补全（AppColors.info、AppSpacing.xs/sm/md/lg/xl、cardPaddingCompact）
+- 聊天页 `_isSendingMessage` 标志在 avatar 为 null 时未重置的问题
+- `AiAvatarSharedView` 聊天入口按钮路由传参修复
+
 ## [1.0.0] - 2026-03-06
 
 ### Week 1 — 项目初始化 & 基础架构
