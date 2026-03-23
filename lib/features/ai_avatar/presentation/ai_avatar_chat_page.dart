@@ -28,8 +28,13 @@ import 'widgets/ai_generated_badge.dart';
 /// 8. 骨架屏占位 + 顶部加载指示器
 /// 9. 输入框 setState 抽取为 ValueListenableBuilder，减少整页 rebuild
 /// 10. 动画仅在页面可见时运行（WidgetsBindingObserver）
+///
+/// [avatarId] 若非 null，则与该分身聊天（分享页跨用户入口）；
+/// 为 null 时使用当前登录用户自己的分身。
 class AiAvatarChatPage extends ConsumerStatefulWidget {
-  const AiAvatarChatPage({super.key});
+  final String? avatarId;
+
+  const AiAvatarChatPage({super.key, this.avatarId});
 
   @override
   ConsumerState<AiAvatarChatPage> createState() => _AiAvatarChatPageState();
@@ -40,6 +45,15 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   bool _isSending = false;
+
+  /// 返回正确的 chat provider，根据是否有显式 avatarId 切换
+  ProviderListenable<AiAvatarChatState> get _chatProvider => widget.avatarId != null
+      ? aiAvatarChatByIdProvider(widget.avatarId!)
+      : aiAvatarChatProvider;
+
+  AiAvatarChatNotifier _chatNotifier() => widget.avatarId != null
+      ? ref.read(aiAvatarChatByIdProvider(widget.avatarId!).notifier)
+      : ref.read(aiAvatarChatProvider.notifier);
   bool _showQuickPhrases = false;
   /// 【性能优化】_isLoadingHistory 改由 Provider state 驱动
   /// 页面仅保留 _initialLoaded 标记，用于首次进入时加载历史
@@ -88,11 +102,11 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
     // 【性能优化】不再用 addListener + setState 监听输入框
     // 改用 ValueListenableBuilder 局部更新发送按钮（见 _buildInputArea）
 
-    // 【性能优化】首次进入时加载历史消息
+    // 【性能優化】首次进入时加载历史消息
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_initialLoaded) {
         _initialLoaded = true;
-        ref.read(aiAvatarChatProvider.notifier).loadHistory();
+        _chatNotifier().loadHistory();
       }
     });
 
@@ -146,7 +160,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   Widget build(BuildContext context) {
     final avatar = ref.watch(currentAiAvatarProvider).valueOrNull;
     // 【性能优化】使用 select 仅监听 messages 列表引用变化
-    final chatState = ref.watch(aiAvatarChatProvider);
+    final chatState = ref.watch(_chatProvider);
     final messages = chatState.messages;
     final isLoadingHistory = chatState.isLoadingHistory;
     final historyLoadFailed = chatState.historyLoadFailed;
@@ -530,9 +544,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               child: Center(
                 child: GestureDetector(
-                  onTap: () => ref
-                      .read(aiAvatarChatProvider.notifier)
-                      .retryLoadHistory(),
+                  onTap: () => _chatNotifier().retryLoadHistory(),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.md, vertical: AppSpacing.xs),
@@ -596,11 +608,11 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification) {
       // 滑动到列表顶部 50px 以内时触发加载历史
-      final chatState = ref.read(aiAvatarChatProvider);
+      final chatState = ref.read(_chatProvider);
       if (notification.metrics.pixels < 50 &&
           !chatState.isLoadingHistory &&
           !chatState.historyLoadFailed) {
-        ref.read(aiAvatarChatProvider.notifier).loadHistory();
+        _chatNotifier().loadHistory();
       }
     }
     // 返回 false 允许通知继续传播，避免阻断 ListView 自身手势
@@ -1220,7 +1232,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
       _showQuickPhrases = false;
     });
 
-    await ref.read(aiAvatarChatProvider.notifier).sendMessage(text);
+    await _chatNotifier().sendMessage(text);
 
     if (mounted) {
       setState(() => _isSending = false);
@@ -1329,7 +1341,7 @@ class _AiAvatarChatPageState extends ConsumerState<AiAvatarChatPage>
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              ref.read(aiAvatarChatProvider.notifier).clearChat();
+              _chatNotifier().clearChat();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text(context.l10n.commonDelete),

@@ -298,8 +298,19 @@ final aiAvatarChatProvider =
   (ref) => AiAvatarChatNotifier(ref),
 );
 
+/// 以显式 avatarId 聊天的 Provider（用于分享页"与此分身聊天"入口）
+/// 与 [aiAvatarChatProvider] 同逻辑，但 avatarId 由调用方传入，
+/// 而非从 currentAiAvatarProvider 读取。
+final aiAvatarChatByIdProvider = StateNotifierProvider.family<
+    AiAvatarChatNotifier, AiAvatarChatState, String>(
+  (ref, avatarId) => AiAvatarChatNotifier(ref, avatarId: avatarId),
+);
+
 class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
   final Ref _ref;
+
+  /// 若非 null，则忽略 currentAiAvatarProvider，直接使用此 ID 进行聊天
+  final String? _explicitAvatarId;
 
   /// 每页加载条数
   static const _pageSize = 20;
@@ -315,7 +326,9 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
 
   bool get hasMoreHistory => _hasMoreHistory;
 
-  AiAvatarChatNotifier(this._ref) : super(const AiAvatarChatState());
+  AiAvatarChatNotifier(this._ref, {String? avatarId})
+      : _explicitAvatarId = avatarId,
+        super(const AiAvatarChatState());
 
   /// 内容审核过滤回复的固定模板（与 Edge Function 一致）
   static const _filteredReplyTemplate = '分身暂时无法回复，请稍后尝试。';
@@ -326,10 +339,17 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
     if (_isSendingMessage) return;
     _isSendingMessage = true;
 
-    final avatar = _ref.read(currentAiAvatarProvider).valueOrNull;
-    if (avatar == null) {
-      _isSendingMessage = false;
-      return;
+    // 优先使用显式 avatarId（分享页跨用户聊天），否则读取当前用户分身
+    final String avatarId;
+    if (_explicitAvatarId != null) {
+      avatarId = _explicitAvatarId;
+    } else {
+      final avatar = _ref.read(currentAiAvatarProvider).valueOrNull;
+      if (avatar == null) {
+        _isSendingMessage = false;
+        return;
+      }
+      avatarId = avatar.id;
     }
 
     // 添加用户消息，并在 await 前快照此时的历史，防止 await 期间 state 被别处修改
@@ -356,7 +376,7 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
     try {
       final repo = _ref.read(aiAvatarRepositoryProvider);
       final reply = await repo.chatWithAvatar(
-        avatarId: avatar.id,
+        avatarId: avatarId,
         message: message,
         history: history,
       );
@@ -412,12 +432,22 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
     state = state.copyWith(isLoadingHistory: true);
 
     try {
-      final avatar = _ref.read(currentAiAvatarProvider).valueOrNull;
-      if (avatar == null) {
-        _isLoadingHistory = false;
-        // 分身未加载时不清除 historyLoadFailed，避免重试 UI 意外消失
-        state = state.copyWith(isLoadingHistory: false);
-        return;
+      // 优先使用显式 avatarId（分享页跨用户聊天），否则读取当前用户分身
+      final String avatarId;
+      final String currentUserId;
+      if (_explicitAvatarId != null) {
+        avatarId = _explicitAvatarId;
+        currentUserId = ''; // 访客聊天：无当前用户分身 ID
+      } else {
+        final avatar = _ref.read(currentAiAvatarProvider).valueOrNull;
+        if (avatar == null) {
+          _isLoadingHistory = false;
+          // 分身未加载时不清除 historyLoadFailed，避免重试 UI 意外消失
+          state = state.copyWith(isLoadingHistory: false);
+          return;
+        }
+        avatarId = avatar.id;
+        currentUserId = avatar.userId;
       }
 
       // 确认将实际发起请求后，清除上次失败标记
@@ -429,13 +459,9 @@ class AiAvatarChatNotifier extends StateNotifier<AiAvatarChatState> {
           ? state.messages.first.timestamp
           : null;
 
-      // 同理，提前快照 currentUserId，避免 await 期间认证状态变化返回空 ID
-      final currentUserId =
-          _ref.read(currentAiAvatarProvider).valueOrNull?.userId ?? '';
-
       final repo = _ref.read(aiAvatarRepositoryProvider);
       final rows = await repo.getChatHistory(
-        avatarId: avatar.id,
+        avatarId: avatarId,
         limit: limit,
         beforeTimestamp: cursor,
       );

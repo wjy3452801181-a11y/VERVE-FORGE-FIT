@@ -365,7 +365,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '${AppRoutes.aiAvatarChat}/:avatarId',
         pageBuilder: (context, state) => MosaicPage(
           key: state.pageKey,
-          child: const AiAvatarChatPage(),
+          child: AiAvatarChatPage(
+            avatarId: state.pathParameters['avatarId'],
+          ),
         ),
       ),
 

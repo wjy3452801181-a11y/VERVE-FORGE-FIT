@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:verveforge/features/ai_avatar/data/ai_avatar_repository.dart';
 import 'package:verveforge/features/ai_avatar/domain/ai_avatar_model.dart';
+import 'package:verveforge/features/ai_avatar/presentation/ai_avatar_chat_page.dart';
 import 'package:verveforge/features/ai_avatar/providers/ai_avatar_provider.dart';
 
 // =============================================================
@@ -922,6 +923,71 @@ void main() {
       expect(Uri.tryParse(link), isNotNull);
       final state = container.read(aiAvatarShareProvider);
       expect(state, isA<AsyncData<void>>());
+    });
+  });
+
+  // =============================================================
+  // 14. Regression: ISSUE-003 — 分享页"开始聊天"打开自己分身而非目标分身
+  //
+  // Found by /qa on 2026-03-23
+  // Report: .gstack/qa-reports/qa-report-verveforge-2026-03-23.md
+  //
+  // 修复前：AiAvatarChatPage 没有 avatarId 参数；router.dart 虽解析了
+  // /:avatarId 路径参数，但构造 AiAvatarChatPage 时未传入。
+  // AiAvatarChatNotifier 始终读取 currentAiAvatarProvider（自己的分身），
+  // 访客点击"与此分身聊天"时会错误地打开自己的分身。
+  //
+  // 修复后：引入 aiAvatarChatByIdProvider family；AiAvatarChatPage 接受
+  // avatarId 参数并通过 _chatProvider/_chatNotifier() 路由到正确 provider。
+  // AiAvatarChatNotifier 接受可选 avatarId，优先于 currentAiAvatarProvider。
+  // =============================================================
+  group('Regression ISSUE-003: 分享页聊天使用正确的 avatarId', () {
+    test('aiAvatarChatByIdProvider 为不同 avatarId 返回不同 provider 实例', () {
+      final p1 = aiAvatarChatByIdProvider('avatar-a');
+      final p2 = aiAvatarChatByIdProvider('avatar-b');
+      expect(p1, isNot(p2));
+    });
+
+    test('aiAvatarChatByIdProvider 为相同 avatarId 返回相同 provider', () {
+      final p1 = aiAvatarChatByIdProvider('avatar-same');
+      final p2 = aiAvatarChatByIdProvider('avatar-same');
+      expect(p1, equals(p2));
+    });
+
+    test('aiAvatarChatByIdProvider 初始状态为空消息列表', () {
+      final container = ProviderContainer(
+        overrides: [
+          aiAvatarRepositoryProvider.overrideWithValue(_FakeRepoNullLink()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final state = container.read(aiAvatarChatByIdProvider('target-avatar'));
+      expect(state.messages, isEmpty);
+      expect(state.isTyping, isFalse);
+      expect(state.isLoadingHistory, isFalse);
+    });
+
+    test('aiAvatarChatByIdProvider 与 aiAvatarChatProvider 是独立实例', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final own = container.read(aiAvatarChatProvider);
+      final other = container.read(aiAvatarChatByIdProvider('other-avatar'));
+
+      // 初始状态相同（均为空），但它们是独立的 provider 实例
+      expect(own.messages, isEmpty);
+      expect(other.messages, isEmpty);
+    });
+
+    test('AiAvatarChatPage avatarId 为 null 时使用默认 provider', () {
+      const page = AiAvatarChatPage();
+      expect(page.avatarId, isNull);
+    });
+
+    test('AiAvatarChatPage avatarId 可传入目标分身 ID', () {
+      const page = AiAvatarChatPage(avatarId: 'shared-avatar-id');
+      expect(page.avatarId, 'shared-avatar-id');
     });
   });
 }
